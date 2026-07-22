@@ -1,0 +1,83 @@
+{
+  "schema_version": "0.1.0",
+  "nodes": [
+    {"id": "n0", "x_m": 0.0, "y_m": 0.0, "elevation_m": 0.0},
+    {"id": "n1", "x_m": 100.0, "y_m": 0.0, "elevation_m": 0.0},
+    {"id": "n2", "x_m": 200.0, "y_m": 0.0, "elevation_m": 0.0},
+    {"id": "n3", "x_m": 100.0, "y_m": 100.0, "elevation_m": 0.0}
+  ],
+  "edges": [
+    {
+      "id": "e01",
+      "from": "n0",
+      "to": "n1",
+      "points": [[0.0, 0.0, 0.0], [100.0, 0.0, 0.0]],
+      "length_m": 100.0,
+      "travel_time_s": 10.0,
+      "road_class": "primary",
+      "lane_count": 2,
+      "lane_width_m": 3.5,
+      "total_width_m": 8.0,
+      "speed_limit_kph": 40,
+      "one_way": true,
+      "bridge": false,
+      "tunnel": false,
+      "layer": 0,
+      "driveable": true
+    },
+    {
+      "id": "e12",
+      "from": "n1",
+      "to": "n2",
+      "points": [[100.0, 0.0, 0.0], [200.0, 0.0, 0.0]],
+      "length_m": 100.0,
+      "travel_time_s": 10.0,
+      "road_class": "primary",
+      "lane_count": 2,
+      "lane_width_m": 3.5,
+      "total_width_m": 8.0,
+      "speed_limit_kph": 40,
+      "one_way": true,
+      "bridge": false,
+      "tunnel": false,
+      "layer": 0,
+      "driveable": true
+    },
+    {
+      "id": "e032",
+      "from": "n0",
+      "to": "n3",
+      "points": [[0.0, 0.0, 0.0], [100.0, 100.0, 0.0]],
+      "length_m": 141.4,
+      "travel_time_s": 14.0,
+      "road_class": "residential",
+      "lane_count": 2,
+      "lane_width_m": 3.0,
+      "total_width_m": 7.0,
+      "speed_limit_kph": 30,
+      "one_way": true,
+      "bridge": false,
+      "tunnel": false,
+      "layer": 0,
+      "driveable": true
+    },
+    {
+      "id": "e32",
+      "from": "n3",
+      "to": "n2",
+      "points": [[100.0, 100.0, 0.0], [200.0, 0.0, 0.0]],
+      "length_m": 141.4,
+      "travel_time_s": 14.0,
+      "road_class": "residential",
+      "lane_count": 2,
+      "lane_width_m": 3.0,
+      "total_width_m": 7.0,
+      "speed_limit_kph": 30,
+      "one_way": true,
+      "bridge": false,
+      "tunnel": false,
+      "layer": 0,
+      "driveable": true
+    }
+  ]
+}

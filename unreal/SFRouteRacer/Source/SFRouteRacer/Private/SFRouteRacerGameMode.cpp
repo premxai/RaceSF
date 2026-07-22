@@ -1,0 +1,94 @@
+#include "SFRouteRacerGameMode.h"
+
+#include "Engine/GameInstance.h"
+#include "SFBuildingTileActor.h"
+#include "SFDestinationMarker.h"
+#include "SFGeoCoordinateLibrary.h"
+#include "SFMapDataSubsystem.h"
+#include "SFRoadNetworkActor.h"
+#include "SFRouteRacer.h"
+#include "SFRouteRacerPlayerController.h"
+#include "SFRoutingSubsystem.h"
+#include "SFVehiclePawn.h"
+
+ASFRouteRacerGameMode::ASFRouteRacerGameMode()
+{
+	DefaultPawnClass = ASFVehiclePawn::StaticClass();
+	PlayerControllerClass = ASFRouteRacerPlayerController::StaticClass();
+	VehicleClass = ASFVehiclePawn::StaticClass();
+}
+
+void ASFRouteRacerGameMode::StartPlay()
+{
+	Super::StartPlay();
+	if (bSpawnMapActorsOnStart)
+	{
+		BootstrapGrayboxWorld();
+	}
+}
+
+bool ASFRouteRacerGameMode::BootstrapGrayboxWorld()
+{
+	UGameInstance* GameInstance = GetGameInstance();
+	USFMapDataSubsystem* MapData = GameInstance ? GameInstance->GetSubsystem<USFMapDataSubsystem>() : nullptr;
+	if (!MapData)
+	{
+		UE_LOG(LogSFRace, Error, TEXT("Bootstrap failed: map subsystem missing"));
+		return false;
+	}
+
+	if (!MapData->IsMapLoaded() && !MapData->LoadDefaultExport())
+	{
+		UE_LOG(LogSFRace, Error, TEXT("Bootstrap failed: %s"), *MapData->GetLastError());
+		return false;
+	}
+
+	if (USFRoutingSubsystem* Routing = GetWorld()->GetSubsystem<USFRoutingSubsystem>())
+	{
+		Routing->RebuildFromMapData();
+	}
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	RoadNetworkActor = GetWorld()->SpawnActor<ASFRoadNetworkActor>(ASFRoadNetworkActor::StaticClass(), FTransform::Identity, SpawnParams);
+	BuildingTileActor = GetWorld()->SpawnActor<ASFBuildingTileActor>(ASFBuildingTileActor::StaticClass(), FTransform::Identity, SpawnParams);
+	DestinationMarker = GetWorld()->SpawnActor<ASFDestinationMarker>(ASFDestinationMarker::StaticClass(), FTransform::Identity, SpawnParams);
+
+	if (RoadNetworkActor)
+	{
+		RoadNetworkActor->RebuildFromMapData();
+	}
+	if (BuildingTileActor)
+	{
+		BuildingTileActor->BuildAllLoadedTiles();
+	}
+
+	FSFRaceDefinitionData Race;
+	FSFLandmarkData Destination;
+	if (MapData->FindRace(DefaultRaceId, Race) && MapData->FindLandmark(Race.DestinationLandmarkId, Destination) && Destination.bHasSpawn)
+	{
+		const FVector DestLocation = USFGeoCoordinateLibrary::Point2DLocalToUnreal(Destination.Spawn.XMeters, Destination.Spawn.YMeters, 0.0);
+		if (DestinationMarker)
+		{
+			DestinationMarker->SetActorLocation(DestLocation);
+			DestinationMarker->SetDestinationRadiusMeters(25.0f);
+		}
+	}
+
+	FSFLandmarkData Start;
+	if (MapData->FindRace(DefaultRaceId, Race) && MapData->FindLandmark(Race.StartLandmarkId, Start) && Start.bHasSpawn)
+	{
+		if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+		{
+			if (APawn* Pawn = PC->GetPawn())
+			{
+				const FVector StartLocation = USFGeoCoordinateLibrary::Point2DLocalToUnreal(Start.Spawn.XMeters, Start.Spawn.YMeters, 50.0);
+				const FRotator StartRotation(0.0f, Start.Spawn.HeadingDegrees, 0.0f);
+				Pawn->SetActorLocationAndRotation(StartLocation, StartRotation, false, nullptr, ETeleportType::TeleportPhysics);
+			}
+		}
+	}
+
+	UE_LOG(LogSFRace, Log, TEXT("Graybox world bootstrap complete for race %s"), *DefaultRaceId);
+	return true;
+}

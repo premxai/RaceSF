@@ -1,0 +1,33 @@
+[
+  {
+    "race_id": "start_to_finish",
+    "start_landmark_id": "start",
+    "destination_landmark_id": "finish",
+    "routes": [
+      {
+        "profile": "fastest",
+        "distance_m": 200.0,
+        "estimated_time_s": 20.0,
+        "overlap_with_fastest": 1.0,
+        "edge_ids": ["e01", "e12"],
+        "node_ids": ["n0", "n1", "n2"]
+      },
+      {
+        "profile": "balanced",
+        "distance_m": 282.8,
+        "estimated_time_s": 28.0,
+        "overlap_with_fastest": 0.0,
+        "edge_ids": ["e032", "e32"],
+        "node_ids": ["n0", "n3", "n2"]
+      },
+      {
+        "profile": "scenic",
+        "distance_m": 282.8,
+        "estimated_time_s": 28.0,
+        "overlap_with_fastest": 0.0,
+        "edge_ids": ["e032", "e32"],
+        "node_ids": ["n0", "n3", "n2"]
+      }
+    ]
+  }
+]

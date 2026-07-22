@@ -1,0 +1,18 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "5.6",
+  "Category": "Games",
+  "Description": "Open-city destination racing in the San Francisco waterfront district.",
+  "Modules": [
+    {"Name": "SFRouteRacer", "Type": "Runtime", "LoadingPhase": "Default"},
+    {"Name": "SFGeoRuntime", "Type": "Runtime", "LoadingPhase": "PreDefault"},
+    {"Name": "SFRouteRacerEditor", "Type": "Editor", "LoadingPhase": "Default"}
+  ],
+  "Plugins": [
+    {"Name": "ChaosVehiclesPlugin", "Enabled": true},
+    {"Name": "EnhancedInput", "Enabled": true},
+    {"Name": "GeometryScripting", "Enabled": true},
+    {"Name": "ProceduralMeshComponent", "Enabled": true},
+    {"Name": "PythonScriptPlugin", "Enabled": true}
+  ]
+}

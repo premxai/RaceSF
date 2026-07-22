@@ -3,12 +3,15 @@
 Playable open-city route-racing MVP for Unreal Engine 5.6+. Players race between curated
 San Francisco landmarks while remaining free to abandon any suggested route.
 
-The repository currently implements Milestone 1: an offline, deterministic Python pipeline
-for the bounded SF waterfront district. Unreal work is gated on validated real data.
+## Current status
 
-## Quick start
+- Milestone 1 complete: offline OSM/Overture data pipeline, flagship routes, preview
+- Milestone 2 in progress: Unreal C++ graybox project, map loading, roads/buildings,
+  Chaos vehicle foundation
 
-Requires Python 3.12 and native geospatial wheels supported by the selected platform.
+## Quick start (data)
+
+Requires Python 3.12.
 
 ```powershell
 cd tools/geo_pipeline
@@ -20,14 +23,17 @@ pytest
 python -m sf_racer_geo.cli build-all
 ```
 
-If Overture is temporarily unavailable, explicitly opt into OSM building footprints:
+If Overture is temporarily unavailable:
 
 ```powershell
 python -m sf_racer_geo.cli build-all --osm-fallback
 ```
 
-Downloads are cached under `data/cache`; generated Unreal inputs are written to
-`data/exports/sf_mvp`. The game never needs a live map API.
+## Quick start (Unreal)
 
-See `docs/setup.md`, `docs/data-pipeline.md`, and `PROJECT_STATE.md` for details and
-verified project status.
+Open `unreal/SFRouteRacer/SFRouteRacer.uproject` in Unreal Engine 5.6. Compilation has
+not been verified in environments without UE 5.6 installed. See `docs/setup.md`.
+
+Remote: https://github.com/premxai/RaceSF.git
+
+See `PROJECT_STATE.md` for the live checklist.

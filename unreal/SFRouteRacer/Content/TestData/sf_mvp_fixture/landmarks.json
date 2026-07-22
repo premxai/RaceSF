@@ -1,0 +1,30 @@
+[
+  {
+    "id": "start",
+    "name": "Start",
+    "latitude": 37.7815,
+    "longitude": -122.3975,
+    "enabled": true,
+    "spawn": {
+      "edge_id": "e01",
+      "node_id": "n0",
+      "x_m": 0.0,
+      "y_m": 0.0,
+      "heading_degrees": 0.0
+    }
+  },
+  {
+    "id": "finish",
+    "name": "Finish",
+    "latitude": 37.7825,
+    "longitude": -122.3965,
+    "enabled": true,
+    "spawn": {
+      "edge_id": "e12",
+      "node_id": "n2",
+      "x_m": 200.0,
+      "y_m": 0.0,
+      "heading_degrees": 0.0
+    }
+  }
+]

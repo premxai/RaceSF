@@ -1,12 +1,37 @@
 # Unreal import
 
-Unreal import has not started because Milestone 1 has not yet passed its live-data
-acceptance gate.
+## Export location
 
-The future importer will read `data/exports/sf_mvp/manifest.json`, reject unsupported
-schema versions, validate every referenced file and ID, then load graph and tile data
-through `USFMapDataSubsystem`. It must fail before actor creation when data is corrupt.
+The offline pipeline writes:
 
-Local meters become Unreal centimeters with `X = easting × 100`, `Y = -northing × 100`,
-and `Z = elevation × 100`. Runtime implementation must mirror the tested Python
-conversion. Editor-only baking code belongs in `SFRouteRacerEditor`.
+```text
+data/exports/sf_mvp/manifest.json
+```
+
+`USFMapDataSubsystem` resolves that directory relative to the Unreal project, or falls
+back to `Content/Maps/sf_mvp` / `Content/TestData/sf_mvp_fixture` for local tests.
+
+## Load rules
+
+1. Reject any schema version other than `0.1.0`.
+2. Validate duplicate IDs, missing graph nodes, missing tile references, missing
+   landmark spawns, and non-driveable route edges.
+3. Fail before spawning map actors when validation fails.
+4. Log through `LogSFGeo`, `LogSFRouting`, `LogSFMapGeneration`, and `LogSFRace`.
+
+## Coordinate conversion
+
+Local meters become Unreal centimeters with:
+
+```text
+X = easting × 100
+Y = -northing × 100
+Z = elevation × 100
+```
+
+Implemented once in `USFGeoCoordinateLibrary`.
+
+## Editor import
+
+`Tools → Import SF Route Racer Map Export` validates the default export directory and
+shows a notification with road/building/race counts.

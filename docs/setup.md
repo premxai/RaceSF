@@ -12,9 +12,35 @@
 Use `--force-download` only when refreshing upstream data. Use `--osm-fallback`
 only when deliberately replacing preferred Overture footprints with OSM buildings.
 
-## Unreal
+## Unreal Engine 5.6
 
-Unreal project creation is blocked by the Milestone 1 acceptance gate. Once the
-exports validate, install Unreal Engine 5.6 with C++ tooling, Visual Studio 2022,
-the Game development with C++ workload, and a Windows SDK. Exact project generation
-and build commands will be added in Milestone 2.
+1. Install Unreal Engine **5.6** with C++ support.
+2. Install Visual Studio 2022 with the **Game development with C++** workload and a
+   current Windows 10/11 SDK.
+3. Open `unreal/SFRouteRacer/SFRouteRacer.uproject`.
+4. Allow the editor to generate Visual Studio project files and compile modules.
+5. After first compile, create Enhanced Input assets and a Chaos vehicle Blueprint
+   based on `ASFVehiclePawn`.
+6. Create a World Partition map named `SFWaterfrontMVP` under `/Game/Maps`.
+7. Place or spawn `ASFRoadNetworkActor` and `ASFBuildingTileActor`, or rely on
+   `ASFRouteRacerGameMode` bootstrap.
+8. Run automation tests from Session Frontend:
+
+```text
+SFRouteRacer.Geo.CoordinateConversion
+SFRouteRacer.Geo.LoadFixtureManifest
+SFRouteRacer.Geo.RejectInvalidSchema
+SFRouteRacer.Race.StateTransitions
+```
+
+### Compile status
+
+Unreal compilation is **unverified** in the current development environment because
+UE 5.6 is not installed here. Source, configs, fixtures, and docs are authored for a
+clean UE 5.6 machine.
+
+### Suggested build command after UE install
+
+```powershell
+& "C:\Program Files\Epic Games\UE_5.6\Engine\Build\BatchFiles\Build.bat" SFRouteRacerEditor Win64 Development -Project="C:\path\to\sf-route-racer\unreal\SFRouteRacer\SFRouteRacer.uproject" -WaitMutex
+```

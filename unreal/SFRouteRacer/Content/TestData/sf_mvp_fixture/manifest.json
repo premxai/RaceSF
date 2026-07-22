@@ -1,0 +1,33 @@
+{
+  "schema_version": "0.1.0",
+  "source_dataset_versions": {
+    "OpenStreetMap": "fixture"
+  },
+  "generation_timestamp": "2026-07-22T00:00:00Z",
+  "projection": "EPSG:32610",
+  "world_origin": {
+    "latitude": 37.7815,
+    "longitude": -122.3975
+  },
+  "bbox": {
+    "west": -122.4,
+    "south": 37.78,
+    "east": -122.39,
+    "north": 37.79
+  },
+  "tile_size_meters": 250,
+  "tile_count": 1,
+  "road_count": 4,
+  "building_count": 1,
+  "landmark_count": 2,
+  "race_count": 1,
+  "graph_file": "graph.json",
+  "landmarks_file": "landmarks.json",
+  "races_file": "races.json",
+  "tile_files": [
+    "tiles/tile_0_0.json"
+  ],
+  "attribution": [
+    "Fixture data for automation tests"
+  ]
+}

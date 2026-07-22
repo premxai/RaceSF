@@ -17,60 +17,55 @@ Status values: Not started · In progress · Complete · Blocked
 - Complete — Interactive HTML preview
 - Complete — Validation and acceptance tests
 - Complete — Formatting, static checks, and tests
+- Complete — Pushed to https://github.com/premxai/RaceSF.git (`8de34c0`)
+
+## Milestone 2 — Unreal graybox
+
+- Complete — Unreal project structure and three C++ modules
+- Complete — Schema-checked JSON map loading (`FSFMapJsonLoader`)
+- Complete — Coordinate conversion library (`USFGeoCoordinateLibrary`)
+- Complete — Map / routing / race subsystems
+- Complete — Road graybox geometry via procedural mesh builder
+- Complete — Building graybox masses (combined tile meshes)
+- Complete — Chaos vehicle pawn foundation and chase camera
+- Complete — Destination marker, race manager stub, UMG widget bases
+- Complete — Editor import menu action
+- Complete — Automation fixtures under `Content/TestData/sf_mvp_fixture`
+- Complete — Build/setup docs with unverified compile status
+- Blocked — Full Unreal compile (UE 5.6 not installed in this environment)
+- Not started — Editor-authored World Partition map asset and vehicle Blueprint assets
 
 ## Later milestones
 
-- Not started — Milestone 2: Unreal graybox
 - Not started — Milestone 3: Race loop
 - Not started — Milestone 4: Navigation
 - Not started — Milestone 5: Presentation
 
-## Phase checklist
-
-1. Complete configuration, schemas, and coordinate conversion.
-2. Download and cache roads; normalize a directed game graph.
-3. Snap six curated landmarks and validate connectivity.
-4. Generate, score, and deduplicate route alternatives.
-5. Acquire and normalize Overture buildings, with explicit OSM fallback.
-6. Tile and export versioned data for Unreal.
-7. Produce the HTML preview and pass offline tests and acceptance checks.
-8. Begin Unreal integration only after all Milestone 1 gates pass.
-
 ## Verification log
 
-- `py -3.12 --version` — Python 3.12.9
-- `pip install -e ".[dev,buildings]"` — complete
-- `python -m ruff format .` — complete
-- `python -m ruff check .` — all checks passed
+Milestone 1:
+
 - `python -m pytest` — 11 passed
-- `python -m sf_racer_geo.cli download-roads --force-download --verbose` — complete
-- `python -m sf_racer_geo.cli download-buildings --verbose` — complete
 - `python -m sf_racer_geo.cli build-all --verbose` — complete from cached sources
 
-Validated export summary:
+Milestone 2:
 
-- 1,910 driveable graph nodes
-- 3,892 runtime driveable edges; 3,944 normalized road records
-- 5,638 normalized Overture buildings; 79 rejected invalid/tiny footprints
-- Six snapped landmarks; all 30 directed landmark pairs connected
-- Three flagship suggestions: Fastest, Balanced, and Scenic
-- 164 tile files; no missing manifest references
-- Schema version `0.1.0`
+- Source and configs authored under `unreal/SFRouteRacer`
+- Tiny fixture export checked in for automation tests
+- Unreal Engine 5.6 was not found on this machine (Epic install list has no UE_5.6)
+- Unreal compilation therefore remains **unverified**
+- No fabricated build success claims
 
 ## Known limitations
 
-- Unreal integration intentionally has not started.
-- Unreal compilation is unverified.
-- The first 20-path candidate pool produced three valid flagship routes. An Explorer
-  route did not meet the 80% overlap gate and is correctly omitted.
-- The full normalized road dataset has six weak components, but all supported landmark
-  pairs are in the same directed routable component.
-- Elevation is flattened and 18 tunnel records are retained as non-driveable metadata.
-- Source lane and speed tags are sparse; documented class defaults fill 1,966 lane and
-  2,884 speed values.
+- UE 5.6 + Visual Studio compile has not been run
+- Enhanced Input assets and Chaos vehicle Blueprint must be created in-editor
+- World Partition map `SFWaterfrontMVP` is referenced but not yet baked as a `.umap`
+- Building collision is disabled by default for graybox performance
+- Explorer route still omitted under the 80% overlap gate from Milestone 1
 
 ## Exact next step
 
-Begin Milestone 2 by creating the Unreal Engine 5.6 C++ project and the three module
-skeletons, then implement schema-checked manifest/graph loading and its automation
-fixtures before generating any road geometry.
+On a UE 5.6 machine: generate project files, compile, create the World Partition map and
+vehicle Blueprint, run Session Frontend automation tests, then start Milestone 3 race loop
+wiring (countdown, timer, results, save best time).

@@ -1,0 +1,16 @@
+{
+  "schema_version": "0.1.0",
+  "tile_id": "tile_0_0",
+  "roads": ["e01", "e12", "e032", "e32"],
+  "buildings": [
+    {
+      "id": "b1",
+      "outer_ring": [[10.0, 10.0], [30.0, 10.0], [30.0, 30.0], [10.0, 30.0], [10.0, 10.0]],
+      "holes": [],
+      "height_m": 18.0,
+      "levels": 6,
+      "category": "commercial",
+      "tile_id": "tile_0_0"
+    }
+  ]
+}

@@ -5,13 +5,18 @@ snapping, route cards, validation, tiling, and versioned JSON export. All coordi
 are projected to EPSG:32610, made origin-relative in meters, then converted to Unreal
 centimeters at the runtime boundary.
 
-The future Unreal project has three modules:
+The Unreal project has three modules:
 
 - `SFGeoRuntime`: contracts, JSON loading, coordinate conversion, tiles, graph routing,
-  and road/building generation abstractions.
-- `SFRouteRacer`: vehicle, race flow, player systems, save game, and UMG.
-- `SFRouteRacerEditor`: import validation, map baking, and editor-only tooling.
+  and road geometry builder abstractions.
+- `SFRouteRacer`: vehicle, race flow stubs, player systems, graybox actors, and UMG
+  widget bases.
+- `SFRouteRacerEditor`: import validation menu action and future baking tools.
 
 The road graph is authoritative for navigation. Rendered geometry is replaceable and
-must never encode routing state. Precomputed route cards seed navigation; Unreal A*
-will reroute freely to the unchanged destination.
+must never encode routing state. Precomputed route cards seed navigation; Unreal
+Dijkstra/A* reroutes freely to the unchanged destination.
+
+Milestone 2 graybox generation uses `USFProceduralRoadGeometryBuilder` and combined
+tile building meshes. World Partition / Data Layer organization is configured for the
+upcoming map asset pass.

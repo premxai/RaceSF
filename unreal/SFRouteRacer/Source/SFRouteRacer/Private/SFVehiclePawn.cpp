@@ -1,16 +1,39 @@
 #include "SFVehiclePawn.h"
 
 #include "Camera/CameraComponent.h"
-#include "ChaosWheeledVehicleMovementComponent.h"
+#include "Components/BoxComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "InputAction.h"
 #include "InputActionValue.h"
+#include "InputMappingContext.h"
+#include "InputModifiers.h"
 #include "SFRouteRacer.h"
+#include "UObject/ConstructorHelpers.h"
 
 ASFVehiclePawn::ASFVehiclePawn()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+	AutoPossessPlayer = EAutoReceiveInput::Player0;
+
+	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
+	CollisionBox->InitBoxExtent(FVector(110.0f, 55.0f, 40.0f));
+	CollisionBox->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
+	CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	CollisionBox->SetNotifyRigidBodyCollision(true);
+	RootComponent = CollisionBox;
+
+	BodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
+	BodyMesh->SetupAttachment(CollisionBox);
+	BodyMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	BodyMesh->SetRelativeScale3D(FVector(2.2f, 1.1f, 0.8f));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMesh(TEXT("/Engine/BasicShapes/Cube.Cube"));
+	if (CubeMesh.Succeeded())
+	{
+		BodyMesh->SetStaticMesh(CubeMesh.Object);
+	}
 
 	ChaseSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("ChaseSpringArm"));
 	ChaseSpringArm->SetupAttachment(RootComponent);
@@ -34,104 +57,191 @@ void ASFVehiclePawn::BeginPlay()
 {
 	Super::BeginPlay();
 	SpawnTransform = GetActorTransform();
+	EnsureRuntimeInput();
+	ApplyMappingContext();
+}
+
+void ASFVehiclePawn::EnsureRuntimeInput()
+{
+	if (!ThrottleAction)
+	{
+		ThrottleAction = NewObject<UInputAction>(this, TEXT("IA_Throttle"), RF_Transient);
+		ThrottleAction->ValueType = EInputActionValueType::Axis1D;
+	}
+	if (!SteerAction)
+	{
+		SteerAction = NewObject<UInputAction>(this, TEXT("IA_Steer"), RF_Transient);
+		SteerAction->ValueType = EInputActionValueType::Axis1D;
+	}
+	if (!BrakeAction)
+	{
+		BrakeAction = NewObject<UInputAction>(this, TEXT("IA_Brake"), RF_Transient);
+		BrakeAction->ValueType = EInputActionValueType::Axis1D;
+	}
+	if (!HandbrakeAction)
+	{
+		HandbrakeAction = NewObject<UInputAction>(this, TEXT("IA_Handbrake"), RF_Transient);
+		HandbrakeAction->ValueType = EInputActionValueType::Boolean;
+	}
+	if (!ResetAction)
+	{
+		ResetAction = NewObject<UInputAction>(this, TEXT("IA_Reset"), RF_Transient);
+		ResetAction->ValueType = EInputActionValueType::Boolean;
+	}
+	if (!CameraAction)
+	{
+		CameraAction = NewObject<UInputAction>(this, TEXT("IA_Camera"), RF_Transient);
+		CameraAction->ValueType = EInputActionValueType::Boolean;
+	}
+	if (!LookAction)
+	{
+		LookAction = NewObject<UInputAction>(this, TEXT("IA_Look"), RF_Transient);
+		LookAction->ValueType = EInputActionValueType::Axis2D;
+	}
+
+	if (VehicleMappingContext)
+	{
+		return;
+	}
+
+	VehicleMappingContext = NewObject<UInputMappingContext>(this, TEXT("IMC_Vehicle"), RF_Transient);
+	VehicleMappingContext->MapKey(ThrottleAction, EKeys::W);
+	VehicleMappingContext->MapKey(ThrottleAction, EKeys::Up);
+	VehicleMappingContext->MapKey(BrakeAction, EKeys::S);
+	VehicleMappingContext->MapKey(BrakeAction, EKeys::Down);
+
+	{
+		UInputModifierNegate* Negate = NewObject<UInputModifierNegate>(VehicleMappingContext);
+		FEnhancedActionKeyMapping& AMap = VehicleMappingContext->MapKey(SteerAction, EKeys::A);
+		AMap.Modifiers.Add(Negate);
+	}
+	VehicleMappingContext->MapKey(SteerAction, EKeys::D);
+
+	VehicleMappingContext->MapKey(HandbrakeAction, EKeys::SpaceBar);
+	VehicleMappingContext->MapKey(ResetAction, EKeys::R);
+	VehicleMappingContext->MapKey(CameraAction, EKeys::C);
+	VehicleMappingContext->MapKey(LookAction, EKeys::Mouse2D);
+}
+
+void ASFVehiclePawn::ApplyMappingContext()
+{
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (!PlayerController || !VehicleMappingContext)
+	{
+		return;
+	}
+
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
+		ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+	{
+		Subsystem->AddMappingContext(VehicleMappingContext, 0);
+	}
 }
 
 void ASFVehiclePawn::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+	EnsureRuntimeInput();
+	ApplyMappingContext();
+}
 
-	if (APlayerController* PlayerController = Cast<APlayerController>(NewController))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
-			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			if (VehicleMappingContext)
-			{
-				Subsystem->AddMappingContext(VehicleMappingContext, 0);
-			}
-		}
-	}
+void ASFVehiclePawn::NotifyControllerChanged()
+{
+	Super::NotifyControllerChanged();
+	ApplyMappingContext();
 }
 
 void ASFVehiclePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	EnsureRuntimeInput();
 
 	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		if (ThrottleAction)
-		{
-			EnhancedInput->BindAction(ThrottleAction, ETriggerEvent::Triggered, this, &ASFVehiclePawn::ThrottleInput);
-			EnhancedInput->BindAction(ThrottleAction, ETriggerEvent::Completed, this, &ASFVehiclePawn::ThrottleInput);
-		}
-		if (SteerAction)
-		{
-			EnhancedInput->BindAction(SteerAction, ETriggerEvent::Triggered, this, &ASFVehiclePawn::SteeringInput);
-			EnhancedInput->BindAction(SteerAction, ETriggerEvent::Completed, this, &ASFVehiclePawn::SteeringInput);
-		}
-		if (BrakeAction)
-		{
-			EnhancedInput->BindAction(BrakeAction, ETriggerEvent::Triggered, this, &ASFVehiclePawn::BrakeInput);
-			EnhancedInput->BindAction(BrakeAction, ETriggerEvent::Completed, this, &ASFVehiclePawn::BrakeInput);
-		}
-		if (HandbrakeAction)
-		{
-			EnhancedInput->BindAction(HandbrakeAction, ETriggerEvent::Started, this, &ASFVehiclePawn::HandbrakePressed);
-			EnhancedInput->BindAction(HandbrakeAction, ETriggerEvent::Completed, this, &ASFVehiclePawn::HandbrakeReleased);
-		}
-		if (ResetAction)
-		{
-			EnhancedInput->BindAction(ResetAction, ETriggerEvent::Started, this, &ASFVehiclePawn::ResetVehicle);
-		}
-		if (CameraAction)
-		{
-			EnhancedInput->BindAction(CameraAction, ETriggerEvent::Started, this, &ASFVehiclePawn::ToggleCamera);
-		}
-		if (LookAction)
-		{
-			EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASFVehiclePawn::LookInput);
-		}
+		EnhancedInput->BindAction(ThrottleAction, ETriggerEvent::Triggered, this, &ASFVehiclePawn::ThrottleInput);
+		EnhancedInput->BindAction(ThrottleAction, ETriggerEvent::Completed, this, &ASFVehiclePawn::ThrottleInput);
+		EnhancedInput->BindAction(SteerAction, ETriggerEvent::Triggered, this, &ASFVehiclePawn::SteeringInput);
+		EnhancedInput->BindAction(SteerAction, ETriggerEvent::Completed, this, &ASFVehiclePawn::SteeringInput);
+		EnhancedInput->BindAction(BrakeAction, ETriggerEvent::Triggered, this, &ASFVehiclePawn::BrakeInput);
+		EnhancedInput->BindAction(BrakeAction, ETriggerEvent::Completed, this, &ASFVehiclePawn::BrakeInput);
+		EnhancedInput->BindAction(HandbrakeAction, ETriggerEvent::Started, this, &ASFVehiclePawn::HandbrakePressed);
+		EnhancedInput->BindAction(HandbrakeAction, ETriggerEvent::Completed, this, &ASFVehiclePawn::HandbrakeReleased);
+		EnhancedInput->BindAction(ResetAction, ETriggerEvent::Started, this, &ASFVehiclePawn::ResetVehicle);
+		EnhancedInput->BindAction(CameraAction, ETriggerEvent::Started, this, &ASFVehiclePawn::ToggleCamera);
+		EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASFVehiclePawn::LookInput);
 	}
+}
+
+void ASFVehiclePawn::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	const float AbsSpeed = FMath::Abs(CurrentSpeedCmPerSec);
+	if (BrakeAxis > KINDA_SMALL_NUMBER || bHandbrake)
+	{
+		const float BrakeStrength = bHandbrake ? BrakeDecelCmPerSec2 * 1.35f : BrakeDecelCmPerSec2 * BrakeAxis;
+		CurrentSpeedCmPerSec = FMath::FInterpTo(CurrentSpeedCmPerSec, 0.0f, DeltaSeconds, BrakeStrength / FMath::Max(1.0f, MaxSpeedCmPerSec));
+	}
+	else if (FMath::Abs(ThrottleAxis) > KINDA_SMALL_NUMBER)
+	{
+		CurrentSpeedCmPerSec += ThrottleAxis * AccelerationCmPerSec2 * DeltaSeconds;
+	}
+	else
+	{
+		CurrentSpeedCmPerSec = FMath::FInterpTo(CurrentSpeedCmPerSec, 0.0f, DeltaSeconds, CoastDecelCmPerSec2 / FMath::Max(1.0f, MaxSpeedCmPerSec));
+	}
+
+	CurrentSpeedCmPerSec = FMath::Clamp(CurrentSpeedCmPerSec, -MaxSpeedCmPerSec * 0.35f, MaxSpeedCmPerSec);
+
+	const float SpeedAlpha = FMath::Clamp(AbsSpeed / FMath::Max(1.0f, MaxSpeedCmPerSec), 0.0f, 1.0f);
+	const float TurnScale = FMath::Lerp(0.35f, 1.0f, SpeedAlpha) * (bHandbrake ? HandbrakeTurnMultiplier : 1.0f);
+	if (FMath::Abs(SteerAxis) > KINDA_SMALL_NUMBER && AbsSpeed > 5.0f)
+	{
+		const float YawDelta = SteerAxis * TurnRateDegreesPerSec * TurnScale * DeltaSeconds * FMath::Sign(CurrentSpeedCmPerSec);
+		AddActorWorldRotation(FRotator(0.0f, YawDelta, 0.0f));
+	}
+
+	FVector Location = GetActorLocation();
+	Location += GetActorForwardVector() * (CurrentSpeedCmPerSec * DeltaSeconds);
+
+	const FVector TraceStart = Location + FVector(0.0f, 0.0f, GroundProbeHeightCm);
+	const FVector TraceEnd = Location - FVector(0.0f, 0.0f, GroundProbeHeightCm * 4.0f);
+	FHitResult Hit;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(SFVehicleGround), false, this);
+	if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_Visibility, Params)
+		|| GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_WorldStatic, Params))
+	{
+		Location.Z = Hit.ImpactPoint.Z + RideHeightCm;
+	}
+
+	FHitResult SweepHit;
+	SetActorLocation(Location, true, &SweepHit, ETeleportType::None);
+	ResetIfFallenOutOfBounds();
 }
 
 void ASFVehiclePawn::ThrottleInput(const FInputActionValue& Value)
 {
-	if (UChaosWheeledVehicleMovementComponent* Movement = Cast<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement()))
-	{
-		Movement->SetThrottleInput(Value.Get<float>());
-	}
+	ThrottleAxis = Value.Get<float>();
 }
 
 void ASFVehiclePawn::SteeringInput(const FInputActionValue& Value)
 {
-	if (UChaosWheeledVehicleMovementComponent* Movement = Cast<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement()))
-	{
-		Movement->SetSteeringInput(Value.Get<float>());
-	}
+	SteerAxis = Value.Get<float>();
 }
 
 void ASFVehiclePawn::BrakeInput(const FInputActionValue& Value)
 {
-	if (UChaosWheeledVehicleMovementComponent* Movement = Cast<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement()))
-	{
-		Movement->SetBrakeInput(Value.Get<float>());
-	}
+	BrakeAxis = Value.Get<float>();
 }
 
 void ASFVehiclePawn::HandbrakePressed()
 {
-	if (UChaosWheeledVehicleMovementComponent* Movement = Cast<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement()))
-	{
-		Movement->SetHandbrakeInput(true);
-	}
+	bHandbrake = true;
 }
 
 void ASFVehiclePawn::HandbrakeReleased()
 {
-	if (UChaosWheeledVehicleMovementComponent* Movement = Cast<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement()))
-	{
-		Movement->SetHandbrakeInput(false);
-	}
+	bHandbrake = false;
 }
 
 void ASFVehiclePawn::LookInput(const FInputActionValue& Value)
@@ -143,14 +253,19 @@ void ASFVehiclePawn::LookInput(const FInputActionValue& Value)
 	}
 }
 
+void ASFVehiclePawn::CaptureSpawnTransform()
+{
+	SpawnTransform = GetActorTransform();
+	CurrentSpeedCmPerSec = 0.0f;
+}
+
 void ASFVehiclePawn::ResetVehicle()
 {
 	SetActorTransform(SpawnTransform, false, nullptr, ETeleportType::TeleportPhysics);
-	if (UPrimitiveComponent* RootPrim = Cast<UPrimitiveComponent>(RootComponent))
-	{
-		RootPrim->SetPhysicsLinearVelocity(FVector::ZeroVector);
-		RootPrim->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
-	}
+	CurrentSpeedCmPerSec = 0.0f;
+	ThrottleAxis = 0.0f;
+	SteerAxis = 0.0f;
+	BrakeAxis = 0.0f;
 	UE_LOG(LogSFRace, Log, TEXT("Vehicle reset to spawn transform"));
 }
 
@@ -178,6 +293,5 @@ void ASFVehiclePawn::ToggleCamera()
 
 float ASFVehiclePawn::GetSpeedKmh() const
 {
-	const float CmPerSecond = GetVelocity().Size();
-	return CmPerSecond * 0.036f;
+	return FMath::Abs(CurrentSpeedCmPerSec) * 0.036f;
 }

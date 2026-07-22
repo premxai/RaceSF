@@ -143,6 +143,10 @@ bool ASFRouteRacerGameMode::BootstrapGrayboxWorld()
 				const FRotator StartRotation(0.0f, Start.Spawn.HeadingDegrees, 0.0f);
 				Pawn->SetActorLocationAndRotation(
 					StartLocation, StartRotation, false, nullptr, ETeleportType::TeleportPhysics);
+				if (ASFVehiclePawn* Vehicle = Cast<ASFVehiclePawn>(Pawn))
+				{
+					Vehicle->CaptureSpawnTransform();
+				}
 			}
 			if (MinimapCaptureActor)
 			{

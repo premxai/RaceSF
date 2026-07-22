@@ -14,7 +14,6 @@ public class SFRouteRacer : ModuleRules
 			"InputCore",
 			"EnhancedInput",
 			"UMG",
-			"ChaosVehicles",
 			"ProceduralMeshComponent",
 			"SFGeoRuntime"
 		});

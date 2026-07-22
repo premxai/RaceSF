@@ -28,13 +28,18 @@ only when deliberately replacing preferred Overture footprints with OSM building
 `setup_unreal.ps1` defaults to `-MaxParallelActions 4` to avoid OOM on 16 GB machines.
 Pass `-MaxParallelActions 0` to use UBT's default parallelism.
 
-4. Open `unreal/SFRouteRacer/SFRouteRacer.uproject`.
-5. After first compile, create Enhanced Input assets and a Chaos vehicle Blueprint
-   based on `ASFVehiclePawn`.
-6. Create a World Partition map named `SFWaterfrontMVP` under `/Game/Maps`.
-7. Place or spawn `ASFRoadNetworkActor` and `ASFBuildingTileActor`, or rely on
-   `ASFRouteRacerGameMode` bootstrap.
-8. Run automation tests from Session Frontend:
+4. Open `unreal/SFRouteRacer/SFRouteRacer.uproject` (or create the startup map first):
+
+```powershell
+.\scripts\bootstrap_playable.ps1 -OpenEditor
+```
+
+5. PIE on `SFWaterfrontMVP`. The C++ arcade vehicle ships with runtime Enhanced Input
+   (WASD / Space / R / C). GameMode auto-loads the map JSON, builds roads/buildings,
+   and starts Ferry Building → Chase Center with a scenic ghost.
+6. Optional later: author a Chaos wheeled vehicle Blueprint and swap GameMode DefaultPawn,
+   plus World Partition polish on `SFWaterfrontMVP`.
+7. Run automation tests from Session Frontend:
 
 ```text
 SFRouteRacer.Geo.CoordinateConversion

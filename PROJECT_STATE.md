@@ -13,23 +13,26 @@ Status values: Not started · In progress · Complete · Blocked
 
 - Complete — `scripts/setup_unreal.ps1` (finds UE 5.8, generates project files, builds)
 - Complete — `scripts/sync_map_export.ps1` (copies export into Content/Maps/sf_mvp)
-- Complete — Editor Python validator `Content/Python/validate_sf_export.py`
-- Complete — Ghost opponent along an alternate suggested route
-- Complete — MVP boundary barrier generator from map extents
-- Complete — Optional debug draw for graph/landmarks/tiles/destination radius
-- Complete — Retargeted to EngineAssociation 5.8; BuildSettingsVersion V7
-- Not started — Chaos vehicle Blueprint, Enhanced Input assets, `SFWaterfrontMVP` map
-- Not started — PIE flagship race / packaged build
+- Complete — `scripts/bootstrap_playable.ps1` + `Content/Python/bootstrap_playable.py`
+- Complete — Arcade `ASFVehiclePawn` with runtime Enhanced Input (no Chaos BP required)
+- Complete — Startup map `/Game/Maps/SFWaterfrontMVP`
+- Complete — Ghost opponent, boundary barriers, debug draw
+- Not started — Chaos vehicle Blueprint polish / packaged Development build
+- Not started — Confirmed human PIE of flagship race (open editor and press Play)
 
 ## Verification log
 
 - Toolchain: VS Build Tools 2026, MSVC 14.51.36231, Windows SDK 10.0.22621.0
-- `Build.bat SFRouteRacerEditor Win64 Development` → Result: Succeeded (2026-07-22)
-- Map export synced locally under `Content/Maps/sf_mvp` (gitignored)
+- `Build.bat SFRouteRacerEditor Win64 Development` → Result: Succeeded (arcade vehicle rewrite)
+- `bootstrap_playable.ps1` → created `Content/Maps/SFWaterfrontMVP.umap`
 - Remote: https://github.com/premxai/RaceSF.git
 
 ## Exact next step
 
-Open `unreal/SFRouteRacer/SFRouteRacer.uproject` in UE 5.8, create Chaos vehicle +
-Enhanced Input assets, author `SFWaterfrontMVP`, and play Ferry Building → Chase Center
-against the scenic ghost.
+Open the project and PIE `SFWaterfrontMVP`:
+
+```powershell
+.\scripts\bootstrap_playable.ps1 -OpenEditor
+```
+
+Controls: W throttle, S brake, A/D steer, Space handbrake, R reset, C camera.

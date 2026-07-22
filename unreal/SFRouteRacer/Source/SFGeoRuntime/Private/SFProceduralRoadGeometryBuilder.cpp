@@ -116,11 +116,17 @@ bool USFProceduralRoadGeometryBuilder::BuildRoadMesh(
 		true);
 
 	static UMaterialInterface* RoadMaterial = LoadObject<UMaterialInterface>(
-		nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
+		nullptr, TEXT("/Game/Materials/M_SFGrayboxUnlit.M_SFGrayboxUnlit"));
+	if (!RoadMaterial)
+	{
+		// Fallback: engine unlit (not level-coloration — that paints solid red).
+		RoadMaterial = LoadObject<UMaterialInterface>(
+			nullptr, TEXT("/Engine/EngineMaterials/DefaultTextMaterialOpaque.DefaultTextMaterialOpaque"));
+	}
 	if (!RoadMaterial)
 	{
 		RoadMaterial = LoadObject<UMaterialInterface>(
-			nullptr, TEXT("/Engine/EngineMaterials/DefaultMaterial.DefaultMaterial"));
+			nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
 	}
 	if (RoadMaterial)
 	{

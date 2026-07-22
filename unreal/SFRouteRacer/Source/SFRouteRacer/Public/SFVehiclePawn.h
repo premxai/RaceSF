@@ -48,6 +48,8 @@ protected:
 
 	void EnsureRuntimeInput();
 	void ApplyMappingContext();
+	void ApplyCarMaterial();
+	void UpdateChaseCamera(float DeltaSeconds);
 
 	void ThrottleInput(const struct FInputActionValue& Value);
 	void SteeringInput(const struct FInputActionValue& Value);
@@ -96,22 +98,28 @@ protected:
 	TObjectPtr<UInputAction> LookAction;
 
 	UPROPERTY(EditAnywhere, Category = "SF|Vehicle")
-	float MaxSpeedCmPerSec = 2800.0f;
+	float MaxSpeedCmPerSec = 3200.0f;
 
 	UPROPERTY(EditAnywhere, Category = "SF|Vehicle")
-	float AccelerationCmPerSec2 = 1600.0f;
+	float AccelerationCmPerSec2 = 2400.0f;
 
 	UPROPERTY(EditAnywhere, Category = "SF|Vehicle")
-	float BrakeDecelCmPerSec2 = 3200.0f;
+	float BrakeDecelCmPerSec2 = 4200.0f;
 
 	UPROPERTY(EditAnywhere, Category = "SF|Vehicle")
-	float CoastDecelCmPerSec2 = 600.0f;
+	float CoastDecelCmPerSec2 = 900.0f;
 
 	UPROPERTY(EditAnywhere, Category = "SF|Vehicle")
-	float TurnRateDegreesPerSec = 95.0f;
+	float ReverseMaxSpeedCmPerSec = 1100.0f;
 
 	UPROPERTY(EditAnywhere, Category = "SF|Vehicle")
-	float HandbrakeTurnMultiplier = 1.45f;
+	float TurnRateDegreesPerSec = 120.0f;
+
+	UPROPERTY(EditAnywhere, Category = "SF|Vehicle")
+	float SteerInputSmoothSpeed = 10.0f;
+
+	UPROPERTY(EditAnywhere, Category = "SF|Vehicle")
+	float HandbrakeTurnMultiplier = 1.55f;
 
 	UPROPERTY(EditAnywhere, Category = "SF|Vehicle")
 	float GroundProbeHeightCm = 800.0f;
@@ -122,11 +130,30 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "SF|Vehicle")
 	float RideHeightCm = 55.0f;
 
+	UPROPERTY(EditAnywhere, Category = "SF|Vehicle")
+	float GroundFollowSpeed = 14.0f;
+
+	UPROPERTY(EditAnywhere, Category = "SF|Camera")
+	float ChaseArmLength = 720.0f;
+
+	UPROPERTY(EditAnywhere, Category = "SF|Camera")
+	float ChasePitchDegrees = -18.0f;
+
+	UPROPERTY(EditAnywhere, Category = "SF|Camera")
+	float LookYawLimitDegrees = 55.0f;
+
+	UPROPERTY(EditAnywhere, Category = "SF|Camera")
+	float LookYawReturnSpeed = 4.5f;
+
 	bool bUsingChaseCamera = true;
 	bool bHandbrake = false;
 	float ThrottleAxis = 0.0f;
 	float SteerAxis = 0.0f;
+	float SteerAxisSmoothed = 0.0f;
 	float BrakeAxis = 0.0f;
 	float CurrentSpeedCmPerSec = 0.0f;
+	float CameraLookYawDegrees = 0.0f;
+	bool bHasGroundHeight = false;
+	float SmoothedGroundZ = 0.0f;
 	FTransform SpawnTransform;
 };

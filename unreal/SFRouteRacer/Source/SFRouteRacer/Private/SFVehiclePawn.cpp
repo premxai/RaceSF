@@ -18,12 +18,16 @@ ASFVehiclePawn::ASFVehiclePawn()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
 
 	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
 	CollisionBox->InitBoxExtent(FVector(110.0f, 55.0f, 40.0f));
 	CollisionBox->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
 	CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	CollisionBox->SetNotifyRigidBodyCollision(true);
+	CollisionBox->SetCanEverAffectNavigation(false);
 	RootComponent = CollisionBox;
 
 	BodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
@@ -35,28 +39,37 @@ ASFVehiclePawn::ASFVehiclePawn()
 	{
 		BodyMesh->SetStaticMesh(CubeMesh.Object);
 	}
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> BodyMat(TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
-	if (BodyMat.Succeeded())
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> FallbackMat(
+		TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
+	if (FallbackMat.Succeeded())
 	{
-		BodyMesh->SetMaterial(0, BodyMat.Object);
+		BodyMesh->SetMaterial(0, FallbackMat.Object);
 	}
 
 	ChaseSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("ChaseSpringArm"));
 	ChaseSpringArm->SetupAttachment(RootComponent);
-	ChaseSpringArm->TargetArmLength = 650.0f;
-	ChaseSpringArm->SocketOffset = FVector(0.0f, 0.0f, 180.0f);
+	ChaseSpringArm->TargetArmLength = ChaseArmLength;
+	ChaseSpringArm->SocketOffset = FVector(0.0f, 0.0f, 160.0f);
 	ChaseSpringArm->bDoCollisionTest = false;
+	ChaseSpringArm->bUsePawnControlRotation = false;
 	ChaseSpringArm->bInheritPitch = false;
+	ChaseSpringArm->bInheritYaw = true;
 	ChaseSpringArm->bInheritRoll = false;
-	ChaseSpringArm->SetRelativeRotation(FRotator(-15.0f, 0.0f, 0.0f));
+	ChaseSpringArm->bEnableCameraLag = true;
+	ChaseSpringArm->bEnableCameraRotationLag = true;
+	ChaseSpringArm->CameraLagSpeed = 12.0f;
+	ChaseSpringArm->CameraRotationLagSpeed = 10.0f;
+	ChaseSpringArm->SetRelativeRotation(FRotator(ChasePitchDegrees, 0.0f, 0.0f));
 
 	ChaseCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ChaseCamera"));
 	ChaseCamera->SetupAttachment(ChaseSpringArm, USpringArmComponent::SocketName);
+	ChaseCamera->bUsePawnControlRotation = false;
 	ChaseCamera->bAutoActivate = true;
 
 	HoodCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("HoodCamera"));
 	HoodCamera->SetupAttachment(RootComponent);
 	HoodCamera->SetRelativeLocation(FVector(40.0f, 0.0f, 120.0f));
+	HoodCamera->bUsePawnControlRotation = false;
 	HoodCamera->bAutoActivate = false;
 }
 
@@ -64,8 +77,37 @@ void ASFVehiclePawn::BeginPlay()
 {
 	Super::BeginPlay();
 	SpawnTransform = GetActorTransform();
+	ApplyCarMaterial();
 	EnsureRuntimeInput();
 	ApplyMappingContext();
+
+	if (ChaseSpringArm)
+	{
+		ChaseSpringArm->TargetArmLength = ChaseArmLength;
+		ChaseSpringArm->SetRelativeRotation(FRotator(ChasePitchDegrees, 0.0f, 0.0f));
+	}
+}
+
+void ASFVehiclePawn::ApplyCarMaterial()
+{
+	if (!BodyMesh)
+	{
+		return;
+	}
+
+	if (UMaterialInterface* CarMat = LoadObject<UMaterialInterface>(
+			nullptr, TEXT("/Game/Materials/M_SFCarUnlit.M_SFCarUnlit")))
+	{
+		BodyMesh->SetMaterial(0, CarMat);
+		return;
+	}
+
+	// Fallback: keep car off the graybox material so it never blends into buildings.
+	if (UMaterialInterface* Fallback = LoadObject<UMaterialInterface>(
+			nullptr, TEXT("/Engine/EngineMaterials/DefaultTextMaterialOpaque.DefaultTextMaterialOpaque")))
+	{
+		BodyMesh->SetMaterial(0, Fallback);
+	}
 }
 
 void ASFVehiclePawn::EnsureRuntimeInput()
@@ -179,15 +221,45 @@ void ASFVehiclePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	}
 }
 
+void ASFVehiclePawn::UpdateChaseCamera(float DeltaSeconds)
+{
+	if (!ChaseSpringArm || !bUsingChaseCamera)
+	{
+		return;
+	}
+
+	// Pitch is locked; yaw look peeks then recenters when the mouse is idle.
+	if (FMath::Abs(CameraLookYawDegrees) > KINDA_SMALL_NUMBER)
+	{
+		CameraLookYawDegrees = FMath::FInterpTo(CameraLookYawDegrees, 0.0f, DeltaSeconds, LookYawReturnSpeed);
+	}
+
+	ChaseSpringArm->TargetArmLength = ChaseArmLength;
+	ChaseSpringArm->SetRelativeRotation(FRotator(ChasePitchDegrees, CameraLookYawDegrees, 0.0f));
+}
+
 void ASFVehiclePawn::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
+	SteerAxisSmoothed = FMath::FInterpTo(SteerAxisSmoothed, SteerAxis, DeltaSeconds, SteerInputSmoothSpeed);
+
 	const float AbsSpeed = FMath::Abs(CurrentSpeedCmPerSec);
-	if (BrakeAxis > KINDA_SMALL_NUMBER || bHandbrake)
+	const bool bWantsReverse = BrakeAxis > 0.55f && CurrentSpeedCmPerSec <= 40.0f && !bHandbrake;
+
+	if (bHandbrake)
 	{
-		const float BrakeStrength = bHandbrake ? BrakeDecelCmPerSec2 * 1.35f : BrakeDecelCmPerSec2 * BrakeAxis;
-		CurrentSpeedCmPerSec = FMath::FInterpTo(CurrentSpeedCmPerSec, 0.0f, DeltaSeconds, BrakeStrength / FMath::Max(1.0f, MaxSpeedCmPerSec));
+		CurrentSpeedCmPerSec = FMath::FInterpTo(
+			CurrentSpeedCmPerSec, 0.0f, DeltaSeconds, (BrakeDecelCmPerSec2 * 1.6f) / FMath::Max(1.0f, MaxSpeedCmPerSec));
+	}
+	else if (bWantsReverse)
+	{
+		CurrentSpeedCmPerSec -= AccelerationCmPerSec2 * 0.75f * DeltaSeconds;
+	}
+	else if (BrakeAxis > KINDA_SMALL_NUMBER)
+	{
+		CurrentSpeedCmPerSec = FMath::FInterpTo(
+			CurrentSpeedCmPerSec, 0.0f, DeltaSeconds, (BrakeDecelCmPerSec2 * BrakeAxis) / FMath::Max(1.0f, MaxSpeedCmPerSec));
 	}
 	else if (FMath::Abs(ThrottleAxis) > KINDA_SMALL_NUMBER)
 	{
@@ -195,16 +267,19 @@ void ASFVehiclePawn::Tick(float DeltaSeconds)
 	}
 	else
 	{
-		CurrentSpeedCmPerSec = FMath::FInterpTo(CurrentSpeedCmPerSec, 0.0f, DeltaSeconds, CoastDecelCmPerSec2 / FMath::Max(1.0f, MaxSpeedCmPerSec));
+		CurrentSpeedCmPerSec = FMath::FInterpTo(
+			CurrentSpeedCmPerSec, 0.0f, DeltaSeconds, CoastDecelCmPerSec2 / FMath::Max(1.0f, MaxSpeedCmPerSec));
 	}
 
-	CurrentSpeedCmPerSec = FMath::Clamp(CurrentSpeedCmPerSec, -MaxSpeedCmPerSec * 0.35f, MaxSpeedCmPerSec);
+	CurrentSpeedCmPerSec = FMath::Clamp(CurrentSpeedCmPerSec, -ReverseMaxSpeedCmPerSec, MaxSpeedCmPerSec);
 
 	const float SpeedAlpha = FMath::Clamp(AbsSpeed / FMath::Max(1.0f, MaxSpeedCmPerSec), 0.0f, 1.0f);
-	const float TurnScale = FMath::Lerp(0.35f, 1.0f, SpeedAlpha) * (bHandbrake ? HandbrakeTurnMultiplier : 1.0f);
-	if (FMath::Abs(SteerAxis) > KINDA_SMALL_NUMBER && AbsSpeed > 5.0f)
+	// Keep low-speed steering usable for city corners; ease off at top speed.
+	const float TurnScale = FMath::Lerp(0.85f, 0.55f, SpeedAlpha) * (bHandbrake ? HandbrakeTurnMultiplier : 1.0f);
+	if (FMath::Abs(SteerAxisSmoothed) > KINDA_SMALL_NUMBER && AbsSpeed > 8.0f)
 	{
-		const float YawDelta = SteerAxis * TurnRateDegreesPerSec * TurnScale * DeltaSeconds * FMath::Sign(CurrentSpeedCmPerSec);
+		const float YawDelta = SteerAxisSmoothed * TurnRateDegreesPerSec * TurnScale * DeltaSeconds
+			* FMath::Sign(CurrentSpeedCmPerSec);
 		AddActorWorldRotation(FRotator(0.0f, YawDelta, 0.0f));
 	}
 
@@ -218,11 +293,28 @@ void ASFVehiclePawn::Tick(float DeltaSeconds)
 	if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_Visibility, Params)
 		|| GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_WorldStatic, Params))
 	{
-		Location.Z = Hit.ImpactPoint.Z + RideHeightCm;
+		const float TargetZ = Hit.ImpactPoint.Z + RideHeightCm;
+		if (!bHasGroundHeight)
+		{
+			SmoothedGroundZ = TargetZ;
+			bHasGroundHeight = true;
+		}
+		else
+		{
+			SmoothedGroundZ = FMath::FInterpTo(SmoothedGroundZ, TargetZ, DeltaSeconds, GroundFollowSpeed);
+		}
+		Location.Z = SmoothedGroundZ;
 	}
+
+	// Keep the pawn upright — never pitch/roll from collision or look.
+	FRotator FlatRotation = GetActorRotation();
+	FlatRotation.Pitch = 0.0f;
+	FlatRotation.Roll = 0.0f;
+	SetActorRotation(FlatRotation);
 
 	FHitResult SweepHit;
 	SetActorLocation(Location, true, &SweepHit, ETeleportType::None);
+	UpdateChaseCamera(DeltaSeconds);
 	ResetIfFallenOutOfBounds();
 }
 
@@ -253,17 +345,17 @@ void ASFVehiclePawn::HandbrakeReleased()
 
 void ASFVehiclePawn::LookInput(const FInputActionValue& Value)
 {
+	// Yaw peek only — mouse pitch was causing the chase camera to tilt up/down.
 	const FVector2D Axis = Value.Get<FVector2D>();
-	if (ChaseSpringArm)
-	{
-		ChaseSpringArm->AddRelativeRotation(FRotator(-Axis.Y, Axis.X, 0.0f));
-	}
+	CameraLookYawDegrees = FMath::Clamp(CameraLookYawDegrees + Axis.X * 0.12f, -LookYawLimitDegrees, LookYawLimitDegrees);
 }
 
 void ASFVehiclePawn::CaptureSpawnTransform()
 {
 	SpawnTransform = GetActorTransform();
 	CurrentSpeedCmPerSec = 0.0f;
+	CameraLookYawDegrees = 0.0f;
+	bHasGroundHeight = false;
 }
 
 void ASFVehiclePawn::ResetVehicle()
@@ -272,7 +364,14 @@ void ASFVehiclePawn::ResetVehicle()
 	CurrentSpeedCmPerSec = 0.0f;
 	ThrottleAxis = 0.0f;
 	SteerAxis = 0.0f;
+	SteerAxisSmoothed = 0.0f;
 	BrakeAxis = 0.0f;
+	CameraLookYawDegrees = 0.0f;
+	bHasGroundHeight = false;
+	if (ChaseSpringArm)
+	{
+		ChaseSpringArm->SetRelativeRotation(FRotator(ChasePitchDegrees, 0.0f, 0.0f));
+	}
 	UE_LOG(LogSFRace, Log, TEXT("Vehicle reset to spawn transform"));
 }
 
@@ -296,6 +395,7 @@ void ASFVehiclePawn::ToggleCamera()
 	{
 		HoodCamera->SetActive(!bUsingChaseCamera);
 	}
+	CameraLookYawDegrees = 0.0f;
 }
 
 float ASFVehiclePawn::GetSpeedKmh() const

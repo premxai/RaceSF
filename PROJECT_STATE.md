@@ -4,25 +4,22 @@ Last updated: 2026-07-22
 
 Status values: Not started · In progress · Complete · Blocked
 
-## Diagnosis (2026-07-22 evening)
+## Milestone: Playable graybox (2026-07-22)
 
-Gameplay bootstrap is healthy. Latest PIE log showed:
-- map export loaded (3944 roads / 6 landmarks / 26 races)
-- roads + buildings built
-- race `ferry_building_to_chase_center` reached Racing
-- scenic ghost started
+**Status: Complete** — Ferry Building graybox is driveable in PIE.
 
-What looked “broken” was the viewport:
-1. Empty map with unbuilt/static lighting → black screen + “LIGHTING NEEDS TO BE REBUILT”
-2. `r.DefaultFeature.AutoExposure=False` → crushed exposure / black scene
-3. City graybox only exists after Play (spawned in GameMode), ~1.5 km from origin
-4. Double road/building build slowed first PIE to ~35s of black loading
+Confirmed working:
+- Map export loads (3944 roads / 6 landmarks / 26 races)
+- Roads + buildings spawn; race reaches Racing with scenic ghost
+- Player spawns at Ferry Building with chase camera
+- Unlit gray city + orange car are visible without lightmap rebuild
+- Arcade controls (WASD / Space / R / C) feel usable; camera pitch locked
 
-## Fixes applied
-- Dynamic lighting only (`r.AllowStaticLighting=False`, Force No Precomputed Lighting)
-- AutoExposure re-enabled + unbound post-process exposure boost
-- Brighter BasicShape materials on roads/buildings/vehicle
-- Disable BeginPlay auto-rebuild (GameMode builds once)
+Key fixes that got us here:
+- Dynamic lighting + auto-exposure (no black unbuilt void)
+- Remove ProceduralMesh `SectionIndex + 100000` densification
+- Unlit materials: `M_SFGrayboxUnlit` (city) / `M_SFCarUnlit` (player)
+- Locked chase pitch; mouse yaw peek only; smoother ground follow + steering
 
 ## Exact next step
-Press Play, wait for bootstrap (~10–20s after fix), confirm yellow/checker graybox city at Ferry Building.
+Polish destination race UX (HUD, route choice, clearer landmarks) and keep iterating vehicle feel.

@@ -174,6 +174,15 @@ def create_map() -> bool:
 
 
 def main() -> None:
+    # Graybox meshes use this Unlit material so PIE stays visible without lightmaps.
+    try:
+        import create_graybox_material
+
+        create_graybox_material.create_unlit_gray()
+        create_graybox_material.create_unlit_car()
+    except Exception as exc:  # noqa: BLE001
+        unreal.log_warning(f"SF playable bootstrap: graybox material step failed ({exc})")
+
     ok = create_map()
     if not ok:
         raise SystemExit(1)

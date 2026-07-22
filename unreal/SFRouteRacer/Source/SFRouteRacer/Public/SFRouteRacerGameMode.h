@@ -10,6 +10,9 @@ class ASFDestinationMarker;
 class ASFRaceManager;
 class ASFRouteHighlightActor;
 class ASFMinimapCaptureActor;
+class ASFGhostOpponentActor;
+class ASFBoundaryGeneratorActor;
+class ASFDebugDrawActor;
 class ASFVehiclePawn;
 
 /**
@@ -47,6 +50,15 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "SF|Race")
 	bool bAutoStartDefaultRace = true;
 
+	UPROPERTY(EditAnywhere, Category = "SF|AI")
+	bool bSpawnGhostOpponent = true;
+
+	UPROPERTY(EditAnywhere, Category = "SF|AI")
+	FString GhostRouteProfile = TEXT("scenic");
+
+	UPROPERTY(EditAnywhere, Category = "SF|Debug")
+	bool bEnableDebugDraw = false;
+
 	UPROPERTY()
 	TObjectPtr<ASFRoadNetworkActor> RoadNetworkActor;
 
@@ -64,4 +76,13 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<ASFMinimapCaptureActor> MinimapCaptureActor;
+
+	UPROPERTY()
+	TObjectPtr<ASFGhostOpponentActor> GhostOpponent;
+
+	UPROPERTY()
+	TObjectPtr<ASFBoundaryGeneratorActor> BoundaryGenerator;
+
+	UPROPERTY()
+	TObjectPtr<ASFDebugDrawActor> DebugDrawActor;
 };

@@ -4,51 +4,29 @@ Last updated: 2026-07-22
 
 Status values: Not started · In progress · Complete · Blocked
 
-## Milestone 1 — Data proof
+## Milestones 1–5
 
-- Complete — Offline SF data pipeline (`8de34c0`)
+- Complete (source) — Data pipeline through presentation hooks
+- Blocked — UE 5.6 compile / PIE / package on this machine
 
-## Milestone 2 — Unreal graybox
+## Post-milestone playability pass
 
-- Complete — C++ graybox modules (`8d38564`)
-- Blocked — UE 5.6 compile not available here
-
-## Milestone 3 — Race loop
-
-- Complete — Countdown, finish, results, save, choose/quick/daily (`44fa98f`)
-
-## Milestone 4 — Navigation
-
-- Complete — Highlights, minimap capture, throttled rerouting (`c77c2fe`)
-
-## Milestone 5 — Presentation
-
-- Complete — Audio subsystem placeholders (countdown/go/destination/reroute/UI)
-- Complete — Boundary barrier actor with MVP signage hook
-- Complete — Credits/attribution widget data from manifest
-- Complete — Road edge markings on wider roads
-- Complete — Out-of-bounds vehicle reset helper
-- Complete — Packaging + profiling documentation
-- Blocked — Packaged build and measured 60 FPS result (requires UE 5.6 machine)
+- Complete — `scripts/setup_unreal.ps1` (finds UE 5.6+, generates project files, builds)
+- Complete — `scripts/sync_map_export.ps1` (copies export into Content/Maps/sf_mvp)
+- Complete — Editor Python validator `Content/Python/validate_sf_export.py`
+- Complete — Ghost opponent along an alternate suggested route
+- Complete — MVP boundary barrier generator from map extents
+- Complete — Optional debug draw for graph/landmarks/tiles/destination radius
+- Blocked — Live compile still requires installing Unreal Engine 5.6
 
 ## Verification log
 
-| Item | Result |
-|------|--------|
-| Python tests | 11 passed (earlier in session) |
-| GitHub remote | https://github.com/premxai/RaceSF.git |
-| Unreal compile | Unverified — UE 5.6 not installed |
-| Packaged build | Not run |
-
-## Known limitations
-
-- No editor-authored materials, Chaos vehicle Blueprint, or World Partition `.umap` yet
-- Audio cues log placeholders until licensed assets are bound
-- Explorer route still often omitted by overlap gating
-- Full PIE / package validation still pending a UE 5.6 workstation
+- `scripts/setup_unreal.ps1` expected to exit 2 here until UE 5.6 is installed
+- Unreal compilation remains unverified
+- Remote: https://github.com/premxai/RaceSF.git
 
 ## Exact next step
 
-On a UE 5.6 machine: generate project files, compile, create the World Partition map and
-vehicle/input Blueprints, run automation tests, package a Development build, then profile
-a Ferry Building → Chase Center run with `stat unit` / Insights.
+Install UE 5.6, run `.\scripts\sync_map_export.ps1` then `.\scripts\setup_unreal.ps1`,
+open the project, create Chaos vehicle + Enhanced Input assets, and play Ferry Building
+→ Chase Center against the scenic ghost.

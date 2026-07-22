@@ -1,9 +1,12 @@
 #include "SFRouteRacerGameMode.h"
 
 #include "Engine/GameInstance.h"
+#include "SFBoundaryGeneratorActor.h"
 #include "SFBuildingTileActor.h"
+#include "SFDebugDrawActor.h"
 #include "SFDestinationMarker.h"
 #include "SFGeoCoordinateLibrary.h"
+#include "SFGhostOpponentActor.h"
 #include "SFMapDataSubsystem.h"
 #include "SFMinimapCaptureActor.h"
 #include "SFNavigationSubsystem.h"
@@ -71,6 +74,15 @@ bool ASFRouteRacerGameMode::BootstrapGrayboxWorld()
 		ASFRouteHighlightActor::StaticClass(), FTransform::Identity, SpawnParams);
 	MinimapCaptureActor = GetWorld()->SpawnActor<ASFMinimapCaptureActor>(
 		ASFMinimapCaptureActor::StaticClass(), FTransform::Identity, SpawnParams);
+	BoundaryGenerator = GetWorld()->SpawnActor<ASFBoundaryGeneratorActor>(
+		ASFBoundaryGeneratorActor::StaticClass(), FTransform::Identity, SpawnParams);
+	DebugDrawActor = GetWorld()->SpawnActor<ASFDebugDrawActor>(
+		ASFDebugDrawActor::StaticClass(), FTransform::Identity, SpawnParams);
+	if (bSpawnGhostOpponent)
+	{
+		GhostOpponent = GetWorld()->SpawnActor<ASFGhostOpponentActor>(
+			ASFGhostOpponentActor::StaticClass(), FTransform::Identity, SpawnParams);
+	}
 
 	if (RoadNetworkActor)
 	{
@@ -92,6 +104,10 @@ bool ASFRouteRacerGameMode::BootstrapGrayboxWorld()
 	if (USFNavigationSubsystem* Navigation = GetWorld()->GetSubsystem<USFNavigationSubsystem>())
 	{
 		Navigation->BindActors(RouteHighlightActor, DestinationMarker, MinimapCaptureActor);
+	}
+	if (DebugDrawActor)
+	{
+		DebugDrawActor->SetDebugEnabled(bEnableDebugDraw);
 	}
 
 	FSFRaceDefinitionData Race;
@@ -153,5 +169,10 @@ bool ASFRouteRacerGameMode::BeginDefaultRace()
 		RaceSubsystem->SetSelectedRouteProfile(TEXT("fastest"));
 	}
 
-	return RaceManager->StartRace(DefaultRaceId, TEXT("fastest"));
+	const bool bStarted = RaceManager->StartRace(DefaultRaceId, TEXT("fastest"));
+	if (bStarted && GhostOpponent)
+	{
+		GhostOpponent->StartGhostForRace(DefaultRaceId, GhostRouteProfile);
+	}
+	return bStarted;
 }

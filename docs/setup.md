@@ -42,5 +42,18 @@ clean UE 5.6 machine.
 ### Suggested build command after UE install
 
 ```powershell
+.\scripts\sync_map_export.ps1
+.\scripts\setup_unreal.ps1
+```
+
+Or manually:
+
+```powershell
 & "C:\Program Files\Epic Games\UE_5.6\Engine\Build\BatchFiles\Build.bat" SFRouteRacerEditor Win64 Development -Project="C:\path\to\sf-route-racer\unreal\SFRouteRacer\SFRouteRacer.uproject" -WaitMutex
+```
+
+Editor Python validation (with Python Editor Script Plugin enabled):
+
+```text
+Content/Python/validate_sf_export.py
 ```

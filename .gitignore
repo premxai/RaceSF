@@ -14,12 +14,13 @@ data/processed/*
 data/exports/*
 !data/**/.gitkeep
 
-# Unreal generated files (future milestone)
+# Unreal generated files
 unreal/**/Binaries/
 unreal/**/DerivedDataCache/
 unreal/**/Intermediate/
 unreal/**/Saved/
 unreal/**/*.sln
+unreal/**/Content/Maps/sf_mvp/
 
 # Editors and OS
 .vs/

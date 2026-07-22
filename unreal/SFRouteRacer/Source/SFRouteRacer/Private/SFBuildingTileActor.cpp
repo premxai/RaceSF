@@ -126,11 +126,11 @@ void ASFBuildingTileActor::BuildFromTileId(const FString& InTileId)
 
 			BuildingMesh->CreateMeshSection_LinearColor(Section, Vertices, Triangles, Normals, UV0, Colors, Tangents, bEnableCollision);
 			static UMaterialInterface* BuildingMaterial = LoadObject<UMaterialInterface>(
-				nullptr, TEXT("/Engine/EngineDebugMaterials/LevelColorationUnlitMaterial.LevelColorationUnlitMaterial"));
+				nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
 			if (!BuildingMaterial)
 			{
 				BuildingMaterial = LoadObject<UMaterialInterface>(
-					nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
+					nullptr, TEXT("/Engine/EngineMaterials/DefaultMaterial.DefaultMaterial"));
 			}
 			if (BuildingMaterial)
 			{
@@ -212,11 +212,11 @@ void ASFBuildingTileActor::BuildAllLoadedTiles()
 
 			BuildingMesh->CreateMeshSection_LinearColor(Section, Vertices, Triangles, Normals, UV0, Colors, Tangents, bEnableCollision);
 			static UMaterialInterface* BuildingMaterial = LoadObject<UMaterialInterface>(
-				nullptr, TEXT("/Engine/EngineDebugMaterials/LevelColorationUnlitMaterial.LevelColorationUnlitMaterial"));
+				nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
 			if (!BuildingMaterial)
 			{
 				BuildingMaterial = LoadObject<UMaterialInterface>(
-					nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
+					nullptr, TEXT("/Engine/EngineMaterials/DefaultMaterial.DefaultMaterial"));
 			}
 			if (BuildingMaterial)
 			{

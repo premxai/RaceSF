@@ -154,6 +154,15 @@ void ASFVehiclePawn::ResetVehicle()
 	UE_LOG(LogSFRace, Log, TEXT("Vehicle reset to spawn transform"));
 }
 
+void ASFVehiclePawn::ResetIfFallenOutOfBounds(float MinZCm)
+{
+	if (GetActorLocation().Z < MinZCm)
+	{
+		UE_LOG(LogSFRace, Warning, TEXT("Vehicle fell out of bounds; resetting"));
+		ResetVehicle();
+	}
+}
+
 void ASFVehiclePawn::ToggleCamera()
 {
 	bUsingChaseCamera = !bUsingChaseCamera;

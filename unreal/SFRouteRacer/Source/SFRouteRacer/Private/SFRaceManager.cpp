@@ -3,6 +3,7 @@
 #include "Components/SphereComponent.h"
 #include "Engine/GameInstance.h"
 #include "Kismet/GameplayStatics.h"
+#include "SFAudioSubsystem.h"
 #include "SFDestinationMarker.h"
 #include "SFMapDataSubsystem.h"
 #include "SFNavigationSubsystem.h"
@@ -186,6 +187,19 @@ void ASFRaceManager::AdvanceCountdown(float DeltaSeconds)
 
 	CountdownTimer = 0.0f;
 	--CountdownValue;
+
+	if (USFAudioSubsystem* Audio = GetGameInstance()->GetSubsystem<USFAudioSubsystem>())
+	{
+		if (CountdownValue > 0)
+		{
+			Audio->PlayCountdownBeep();
+		}
+		else
+		{
+			Audio->PlayGoCue();
+		}
+	}
+
 	if (CountdownValue > 0)
 	{
 		OnCountdownStep.Broadcast(CountdownValue);
@@ -245,6 +259,10 @@ void ASFRaceManager::HandleDestinationOverlap(
 void ASFRaceManager::CompleteRace()
 {
 	SetRaceState(ESFRaceState::DestinationReached);
+	if (USFAudioSubsystem* Audio = GetGameInstance()->GetSubsystem<USFAudioSubsystem>())
+	{
+		Audio->PlayDestinationReached();
+	}
 	PersistBestTime();
 	OnRaceFinished.Broadcast(ElapsedRaceSeconds);
 

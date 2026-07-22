@@ -11,32 +11,44 @@ Status values: Not started · In progress · Complete · Blocked
 ## Milestone 2 — Unreal graybox
 
 - Complete — C++ graybox modules (`8d38564`)
-- Blocked — UE 5.6 compile not available in this environment
+- Blocked — UE 5.6 compile not available here
 
 ## Milestone 3 — Race loop
 
-- Complete — Countdown, timer, finish, results, save, choose/quick/daily (`44fa98f`)
+- Complete — Countdown, finish, results, save, choose/quick/daily (`44fa98f`)
 
 ## Milestone 4 — Navigation
 
-- Complete — Route highlight actor with profile colors
-- Complete — Orthographic minimap SceneCapture actor
-- Complete — Navigation subsystem with destination distance
-- Complete — Throttled off-route rerouting (≤2/sec, skip when stationary)
-- Complete — Temporary rerouting banner state
-- Complete — Route choice card data builder for UMG
-- Blocked — Live PIE verification and Blueprint HUD polish without UE 5.6
+- Complete — Highlights, minimap capture, throttled rerouting (`c77c2fe`)
 
-## Later milestones
+## Milestone 5 — Presentation
 
-- Not started — Milestone 5: Presentation
+- Complete — Audio subsystem placeholders (countdown/go/destination/reroute/UI)
+- Complete — Boundary barrier actor with MVP signage hook
+- Complete — Credits/attribution widget data from manifest
+- Complete — Road edge markings on wider roads
+- Complete — Out-of-bounds vehicle reset helper
+- Complete — Packaging + profiling documentation
+- Blocked — Packaged build and measured 60 FPS result (requires UE 5.6 machine)
 
 ## Verification log
 
-- Python tests still pass for route generation changes from Milestone 3
-- Unreal compile remains unverified
+| Item | Result |
+|------|--------|
+| Python tests | 11 passed (earlier in session) |
+| GitHub remote | https://github.com/premxai/RaceSF.git |
+| Unreal compile | Unverified — UE 5.6 not installed |
+| Packaged build | Not run |
+
+## Known limitations
+
+- No editor-authored materials, Chaos vehicle Blueprint, or World Partition `.umap` yet
+- Audio cues log placeholders until licensed assets are bound
+- Explorer route still often omitted by overlap gating
+- Full PIE / package validation still pending a UE 5.6 workstation
 
 ## Exact next step
 
-Milestone 5: lighting/atmosphere notes, road markings polish hooks, boundary props,
-placeholder audio interfaces, credits/attribution screen, packaging docs.
+On a UE 5.6 machine: generate project files, compile, create the World Partition map and
+vehicle/input Blueprints, run automation tests, package a Development build, then profile
+a Ferry Building → Chase Center run with `stat unit` / Insights.

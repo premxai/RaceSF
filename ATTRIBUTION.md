@@ -16,4 +16,7 @@ Generated data remains excluded from Git unless a deliberate Git LFS policy is a
 ## Third-party assets
 
 No audio, vehicle, texture, font, or other third-party game assets are currently bundled.
+Audio hooks exist in `USFAudioSubsystem`; bind only appropriately licensed temporary
+clips and document them here before shipping a package.
+
 Google Maps, Street View, and Google 3D Tiles are not used.

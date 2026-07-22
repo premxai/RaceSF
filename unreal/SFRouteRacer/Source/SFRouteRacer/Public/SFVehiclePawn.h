@@ -24,8 +24,11 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void PossessedBy(AController* NewController) override;
 
-	UFUNCTION(BlueprintCallable, Category = "SF|Vehicle")
+		UFUNCTION(BlueprintCallable, Category = "SF|Vehicle")
 	void ResetVehicle();
+
+	UFUNCTION(BlueprintCallable, Category = "SF|Vehicle")
+	void ResetIfFallenOutOfBounds(float MinZCm = -500.0f);
 
 	UFUNCTION(BlueprintCallable, Category = "SF|Vehicle")
 	void ToggleCamera();

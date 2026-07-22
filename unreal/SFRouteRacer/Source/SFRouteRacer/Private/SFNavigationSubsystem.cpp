@@ -2,6 +2,7 @@
 
 #include "Engine/GameInstance.h"
 #include "Kismet/GameplayStatics.h"
+#include "SFAudioSubsystem.h"
 #include "SFDestinationMarker.h"
 #include "SFGeoCoordinateLibrary.h"
 #include "SFMapDataSubsystem.h"
@@ -137,8 +138,15 @@ bool USFNavigationSubsystem::ForceRerouteFromVehicle()
 		return false;
 	}
 
-	ApplyRoute(Path, ActiveProfile, true);
+		ApplyRoute(Path, ActiveProfile, true);
 	TimeSinceLastReroute = 0.0f;
+	if (UGameInstance* GameInstance = GetWorld()->GetGameInstance())
+	{
+		if (USFAudioSubsystem* Audio = GameInstance->GetSubsystem<USFAudioSubsystem>())
+		{
+			Audio->PlayRerouteCue();
+		}
+	}
 	return true;
 }
 

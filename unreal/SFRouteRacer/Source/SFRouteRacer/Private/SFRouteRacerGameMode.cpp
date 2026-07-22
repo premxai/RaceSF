@@ -8,6 +8,7 @@
 #include "Engine/ExponentialHeightFog.h"
 #include "Engine/GameInstance.h"
 #include "Engine/SkyLight.h"
+#include "GameFramework/WorldSettings.h"
 #include "Kismet/GameplayStatics.h"
 #include "SFBoundaryGeneratorActor.h"
 #include "SFBuildingTileActor.h"
@@ -56,9 +57,49 @@ void ASFRouteRacerGameMode::EnsureWorldLighting()
 		return;
 	}
 
+	if (AWorldSettings* WorldSettings = World->GetWorldSettings())
+	{
+		WorldSettings->bForceNoPrecomputedLighting = true;
+	}
+
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	auto MakeDirectionalMovable = [](ADirectionalLight* Sun)
+	{
+		if (!Sun || !Sun->GetLightComponent())
+		{
+			return;
+		}
+		UDirectionalLightComponent* Light = Cast<UDirectionalLightComponent>(Sun->GetLightComponent());
+		if (!Light)
+		{
+			return;
+		}
+		Light->SetMobility(EComponentMobility::Movable);
+		Light->SetIntensity(20.0f);
+		Light->SetLightColor(FLinearColor(1.0f, 0.96f, 0.9f));
+		Light->SetCastShadows(true);
+		Light->SetAtmosphereSunLight(true);
+	};
+
+	auto MakeSkyMovable = [](ASkyLight* Sky)
+	{
+		if (!Sky || !Sky->GetLightComponent())
+		{
+			return;
+		}
+		USkyLightComponent* Light = Cast<USkyLightComponent>(Sky->GetLightComponent());
+		if (!Light)
+		{
+			return;
+		}
+		Light->SetMobility(EComponentMobility::Movable);
+		Light->SetIntensity(2.5f);
+		Light->bRealTimeCapture = true;
+		Light->RecaptureSky();
+	};
 
 	TArray<AActor*> Existing;
 	UGameplayStatics::GetAllActorsOfClass(World, ADirectionalLight::StaticClass(), Existing);
@@ -69,12 +110,13 @@ void ASFRouteRacerGameMode::EnsureWorldLighting()
 			FVector::ZeroVector,
 			FRotator(-50.0f, 35.0f, 0.0f),
 			SpawnParams);
-		if (Sun && Sun->GetLightComponent())
+		MakeDirectionalMovable(Sun);
+	}
+	else
+	{
+		for (AActor* Actor : Existing)
 		{
-			Sun->GetLightComponent()->SetIntensity(12.0f);
-			Sun->GetLightComponent()->SetLightColor(FLinearColor(1.0f, 0.96f, 0.9f));
-			Sun->GetLightComponent()->SetMobility(EComponentMobility::Movable);
-			Sun->GetLightComponent()->SetCastShadows(true);
+			MakeDirectionalMovable(Cast<ADirectionalLight>(Actor));
 		}
 	}
 
@@ -83,12 +125,13 @@ void ASFRouteRacerGameMode::EnsureWorldLighting()
 	if (Existing.Num() == 0)
 	{
 		ASkyLight* Sky = World->SpawnActor<ASkyLight>(ASkyLight::StaticClass(), FTransform::Identity, SpawnParams);
-		if (Sky && Sky->GetLightComponent())
+		MakeSkyMovable(Sky);
+	}
+	else
+	{
+		for (AActor* Actor : Existing)
 		{
-			Sky->GetLightComponent()->SetIntensity(1.5f);
-			Sky->GetLightComponent()->bRealTimeCapture = true;
-			Sky->GetLightComponent()->SetMobility(EComponentMobility::Movable);
-			Sky->GetLightComponent()->RecaptureSky();
+			MakeSkyMovable(Cast<ASkyLight>(Actor));
 		}
 	}
 
@@ -112,7 +155,7 @@ void ASFRouteRacerGameMode::EnsureWorldLighting()
 		}
 	}
 
-	UE_LOG(LogSFRace, Log, TEXT("World lighting ensured for graybox play"));
+	UE_LOG(LogSFRace, Log, TEXT("World lighting ensured for graybox play (dynamic / no lightmaps)"));
 }
 
 bool ASFRouteRacerGameMode::BootstrapGrayboxWorld()

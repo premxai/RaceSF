@@ -1,4 +1,4 @@
-"""Create or dress the MVP startup map with lights so the editor is not a black void.
+"""Create or dress the MVP startup map with fully dynamic lighting (no lightmaps).
 
 Run via:
   UnrealEditor-Cmd.exe SFRouteRacer.uproject -ExecutePythonScript=Content/Python/bootstrap_playable.py
@@ -22,54 +22,95 @@ def _spawn_actor(actor_class, location=unreal.Vector(0.0, 0.0, 0.0), rotation=un
     return unreal.EditorLevelLibrary.spawn_actor_from_class(actor_class, location, rotation)
 
 
+def _destroy_labeled(labels: set[str]) -> None:
+    for actor in list(unreal.EditorLevelLibrary.get_all_level_actors()):
+        if actor.get_actor_label() in labels:
+            unreal.EditorLevelLibrary.destroy_actor(actor)
+
+
+def _set_movable_light(actor, intensity: float | None = None) -> None:
+    if actor is None:
+        return
+    for cls in (unreal.DirectionalLightComponent, unreal.SkyLightComponent, unreal.LightComponent):
+        comp = actor.get_component_by_class(cls)
+        if comp is None:
+            continue
+        try:
+            comp.set_editor_property("mobility", unreal.ComponentMobility.MOVABLE)
+        except Exception:  # noqa: BLE001
+            pass
+        if intensity is not None:
+            try:
+                comp.set_editor_property("intensity", intensity)
+            except Exception:  # noqa: BLE001
+                pass
+        if cls is unreal.SkyLightComponent:
+            try:
+                comp.set_editor_property("real_time_capture", True)
+            except Exception:  # noqa: BLE001
+                pass
+        break
+
+
 def dress_current_level() -> None:
-    """Add sun/sky/fog/floor so the empty map is visible in the editor viewport."""
-    existing = unreal.EditorLevelLibrary.get_all_level_actors()
-    names = {actor.get_actor_label() for actor in existing}
+    """Replace lights with Movable ones and disable lightmap baking requirements."""
+    world = unreal.EditorLevelLibrary.get_editor_world()
+    if world is not None:
+        settings = world.get_world_settings()
+        if settings is not None:
+            try:
+                settings.set_editor_property("force_no_precomputed_lighting", True)
+            except Exception as exc:  # noqa: BLE001
+                unreal.log_warning(f"SF playable bootstrap: could not set ForceNoPrecomputedLighting ({exc})")
 
-    if "SF_Sun" not in names:
-        sun = _spawn_actor(
-            unreal.DirectionalLight,
-            unreal.Vector(0.0, 0.0, 400.0),
-            unreal.Rotator(-50.0, 35.0, 0.0),
-        )
-        if sun:
-            sun.set_actor_label("SF_Sun")
-            light = sun.get_component_by_class(unreal.DirectionalLightComponent)
-            if light:
-                light.set_editor_property("intensity", 12.0)
+    # Recreate our labeled lighting so mobility is definitely Movable.
+    _destroy_labeled({"SF_Sun", "SF_SkyLight", "SF_SkyAtmosphere", "SF_Fog", "SF_PreviewFloor", "SF_PlayerStart"})
 
-    if "SF_SkyLight" not in names:
-        sky = _spawn_actor(unreal.SkyLight)
-        if sky:
-            sky.set_actor_label("SF_SkyLight")
+    sun = _spawn_actor(
+        unreal.DirectionalLight,
+        unreal.Vector(0.0, 0.0, 400.0),
+        unreal.Rotator(-50.0, 35.0, 0.0),
+    )
+    if sun:
+        sun.set_actor_label("SF_Sun")
+        _set_movable_light(sun, intensity=20.0)
+        light = sun.get_component_by_class(unreal.DirectionalLightComponent)
+        if light:
+            try:
+                light.set_editor_property("atmosphere_sun_light", True)
+            except Exception:  # noqa: BLE001
+                pass
 
-    if "SF_SkyAtmosphere" not in names:
-        atmosphere = _spawn_actor(unreal.SkyAtmosphere)
-        if atmosphere:
-            atmosphere.set_actor_label("SF_SkyAtmosphere")
+    sky = _spawn_actor(unreal.SkyLight)
+    if sky:
+        sky.set_actor_label("SF_SkyLight")
+        _set_movable_light(sky, intensity=2.5)
 
-    if "SF_Fog" not in names:
-        fog = _spawn_actor(unreal.ExponentialHeightFog)
-        if fog:
-            fog.set_actor_label("SF_Fog")
+    atmosphere = _spawn_actor(unreal.SkyAtmosphere)
+    if atmosphere:
+        atmosphere.set_actor_label("SF_SkyAtmosphere")
 
-    if "SF_PreviewFloor" not in names:
-        floor = _spawn_actor(unreal.StaticMeshActor, unreal.Vector(0.0, 0.0, -50.0))
-        if floor:
-            floor.set_actor_label("SF_PreviewFloor")
-            floor.set_actor_scale3d(unreal.Vector(200.0, 200.0, 1.0))
-            mesh = floor.static_mesh_component
-            cube = unreal.EditorAssetLibrary.load_asset("/Engine/BasicShapes/Cube")
-            if mesh and cube:
-                mesh.set_static_mesh(cube)
+    fog = _spawn_actor(unreal.ExponentialHeightFog)
+    if fog:
+        fog.set_actor_label("SF_Fog")
 
-    if "SF_PlayerStart" not in names:
-        start = _spawn_actor(unreal.PlayerStart, unreal.Vector(0.0, 0.0, 100.0))
-        if start:
-            start.set_actor_label("SF_PlayerStart")
+    floor = _spawn_actor(unreal.StaticMeshActor, unreal.Vector(0.0, 0.0, -50.0))
+    if floor:
+        floor.set_actor_label("SF_PreviewFloor")
+        floor.set_actor_scale3d(unreal.Vector(200.0, 200.0, 1.0))
+        mesh = floor.static_mesh_component
+        cube = unreal.EditorAssetLibrary.load_asset("/Engine/BasicShapes/Cube")
+        if mesh and cube:
+            mesh.set_static_mesh(cube)
+            try:
+                mesh.set_editor_property("mobility", unreal.ComponentMobility.STATIC)
+            except Exception:  # noqa: BLE001
+                pass
 
-    # Nudge the editor camera so the floor is on-screen.
+    start = _spawn_actor(unreal.PlayerStart, unreal.Vector(0.0, 0.0, 100.0))
+    if start:
+        start.set_actor_label("SF_PlayerStart")
+
     try:
         unreal.EditorLevelLibrary.set_level_viewport_camera_info(
             unreal.Vector(0.0, -800.0, 400.0),
@@ -79,7 +120,18 @@ def dress_current_level() -> None:
         unreal.log_warning(f"SF playable bootstrap: could not set viewport camera ({exc})")
 
     unreal.EditorLevelLibrary.save_current_level()
-    unreal.log("SF playable bootstrap: dressed level with lighting + preview floor")
+
+    # One lighting build clears the "LIGHTING NEEDS TO BE REBUILT" banner after enabling
+    # Force No Precomputed Lighting (no lightmaps are actually stored).
+    try:
+        world = unreal.EditorLevelLibrary.get_editor_world()
+        unreal.SystemLibrary.execute_console_command(world, "RebuildLighting")
+        unreal.log("SF playable bootstrap: requested RebuildLighting")
+    except Exception as exc:  # noqa: BLE001
+        unreal.log_warning(f"SF playable bootstrap: RebuildLighting failed ({exc})")
+
+    unreal.EditorLevelLibrary.save_current_level()
+    unreal.log("SF playable bootstrap: dressed level with dynamic lighting (no lightmaps)")
 
 
 def create_map() -> bool:

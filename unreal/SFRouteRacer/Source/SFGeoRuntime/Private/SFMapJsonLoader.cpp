@@ -141,7 +141,7 @@ bool FSFMapJsonLoader::LoadManifest(const FString& ManifestPath, FSFMapManifestD
 	{
 		for (const auto& Pair : (*Versions)->Values)
 		{
-			OutManifest.SourceDatasetVersions.Add(Pair.Key, Pair.Value->AsString());
+			OutManifest.SourceDatasetVersions.Add(FString(Pair.Key), Pair.Value->AsString());
 		}
 	}
 

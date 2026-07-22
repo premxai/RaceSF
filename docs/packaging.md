@@ -1,6 +1,6 @@
 # Packaging
 
-## Development package (after UE 5.6 compile)
+## Development package (after UE 5.8 editor compile)
 
 1. Open `unreal/SFRouteRacer/SFRouteRacer.uproject`.
 2. Confirm the map export is reachable (`data/exports/sf_mvp` or copied under Content).
@@ -11,11 +11,12 @@
 ## Suggested command line package
 
 ```powershell
-& "C:\Program Files\Epic Games\UE_5.6\Engine\Build\BatchFiles\RunUAT.bat" BuildCookRun `
+& "C:\Program Files\Epic Games\UE_5.8\Engine\Build\BatchFiles\RunUAT.bat" BuildCookRun `
   -project="C:\path\to\sf-route-racer\unreal\SFRouteRacer\SFRouteRacer.uproject" `
   -noP4 -platform=Win64 -clientconfig=Development -serverconfig=Development `
   -cook -allmaps -build -stage -pak -archive `
   -archivedirectory="C:\path\to\sf-route-racer\dist\windows"
 ```
 
-Packaging has **not** been executed in this environment because Unreal Engine 5.6 is not installed.
+Editor compile is verified on UE 5.8. Packaging has **not** been executed yet
+(vehicle Blueprint / playable map still need authoring).

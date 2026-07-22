@@ -12,13 +12,23 @@
 Use `--force-download` only when refreshing upstream data. Use `--osm-fallback`
 only when deliberately replacing preferred Overture footprints with OSM buildings.
 
-## Unreal Engine 5.6
+## Unreal Engine 5.8
 
-1. Install Unreal Engine **5.6** with C++ support.
-2. Install Visual Studio 2022 with the **Game development with C++** workload and a
-   current Windows 10/11 SDK.
-3. Open `unreal/SFRouteRacer/SFRouteRacer.uproject`.
-4. Allow the editor to generate Visual Studio project files and compile modules.
+1. Install Unreal Engine **5.8** with C++ support (5.6+ also works).
+2. Install Visual Studio / Build Tools with MSVC **14.50+** (UE 5.8 bans 14.40–14.43).
+   Visual Studio Build Tools 2026 (MSVC 14.51) works; include a current Windows 10/11 SDK
+   and the C++ workload / VC tools.
+3. From the repo root:
+
+```powershell
+.\scripts\sync_map_export.ps1
+.\scripts\setup_unreal.ps1
+```
+
+`setup_unreal.ps1` defaults to `-MaxParallelActions 4` to avoid OOM on 16 GB machines.
+Pass `-MaxParallelActions 0` to use UBT's default parallelism.
+
+4. Open `unreal/SFRouteRacer/SFRouteRacer.uproject`.
 5. After first compile, create Enhanced Input assets and a Chaos vehicle Blueprint
    based on `ASFVehiclePawn`.
 6. Create a World Partition map named `SFWaterfrontMVP` under `/Game/Maps`.
@@ -31,25 +41,13 @@ SFRouteRacer.Geo.CoordinateConversion
 SFRouteRacer.Geo.LoadFixtureManifest
 SFRouteRacer.Geo.RejectInvalidSchema
 SFRouteRacer.Race.StateTransitions
+SFRouteRacer.AI.GhostDefaults
 ```
 
-### Compile status
-
-Unreal compilation is **unverified** in the current development environment because
-UE 5.6 is not installed here. Source, configs, fixtures, and docs are authored for a
-clean UE 5.6 machine.
-
-### Suggested build command after UE install
+### Suggested manual build
 
 ```powershell
-.\scripts\sync_map_export.ps1
-.\scripts\setup_unreal.ps1
-```
-
-Or manually:
-
-```powershell
-& "C:\Program Files\Epic Games\UE_5.6\Engine\Build\BatchFiles\Build.bat" SFRouteRacerEditor Win64 Development -Project="C:\path\to\sf-route-racer\unreal\SFRouteRacer\SFRouteRacer.uproject" -WaitMutex
+& "C:\Program Files\Epic Games\UE_5.8\Engine\Build\BatchFiles\Build.bat" SFRouteRacerEditor Win64 Development -Project="C:\path\to\sf-route-racer\unreal\SFRouteRacer\SFRouteRacer.uproject" -WaitMutex -MaxParallelActions=4
 ```
 
 Editor Python validation (with Python Editor Script Plugin enabled):

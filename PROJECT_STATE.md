@@ -7,26 +7,29 @@ Status values: Not started · In progress · Complete · Blocked
 ## Milestones 1–5
 
 - Complete (source) — Data pipeline through presentation hooks
-- Blocked — UE 5.6 compile / PIE / package on this machine
+- Complete — UE 5.8 `SFRouteRacerEditor` Development Win64 compile on this machine
 
 ## Post-milestone playability pass
 
-- Complete — `scripts/setup_unreal.ps1` (finds UE 5.6+, generates project files, builds)
+- Complete — `scripts/setup_unreal.ps1` (finds UE 5.8, generates project files, builds)
 - Complete — `scripts/sync_map_export.ps1` (copies export into Content/Maps/sf_mvp)
 - Complete — Editor Python validator `Content/Python/validate_sf_export.py`
 - Complete — Ghost opponent along an alternate suggested route
 - Complete — MVP boundary barrier generator from map extents
 - Complete — Optional debug draw for graph/landmarks/tiles/destination radius
-- Blocked — Live compile still requires installing Unreal Engine 5.6
+- Complete — Retargeted to EngineAssociation 5.8; BuildSettingsVersion V7
+- Not started — Chaos vehicle Blueprint, Enhanced Input assets, `SFWaterfrontMVP` map
+- Not started — PIE flagship race / packaged build
 
 ## Verification log
 
-- `scripts/setup_unreal.ps1` expected to exit 2 here until UE 5.6 is installed
-- Unreal compilation remains unverified
+- Toolchain: VS Build Tools 2026, MSVC 14.51.36231, Windows SDK 10.0.22621.0
+- `Build.bat SFRouteRacerEditor Win64 Development` → Result: Succeeded (2026-07-22)
+- Map export synced locally under `Content/Maps/sf_mvp` (gitignored)
 - Remote: https://github.com/premxai/RaceSF.git
 
 ## Exact next step
 
-Install UE 5.6, run `.\scripts\sync_map_export.ps1` then `.\scripts\setup_unreal.ps1`,
-open the project, create Chaos vehicle + Enhanced Input assets, and play Ferry Building
-→ Chase Center against the scenic ghost.
+Open `unreal/SFRouteRacer/SFRouteRacer.uproject` in UE 5.8, create Chaos vehicle +
+Enhanced Input assets, author `SFWaterfrontMVP`, and play Ferry Building → Chase Center
+against the scenic ghost.

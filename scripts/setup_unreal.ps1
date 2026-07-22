@@ -1,7 +1,8 @@
 # Finds Unreal Engine 5.6+, generates project files, and builds the editor target.
 param(
     [string]$EngineRoot = "",
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    [int]$MaxParallelActions = 4
 )
 
 $ErrorActionPreference = "Stop"
@@ -12,17 +13,19 @@ if (-not (Test-Path $UProject)) {
     throw "Missing project file: $UProject"
 }
 
-function Find-UE56 {
+function Find-UEEngine {
     param([string]$Hint)
     if ($Hint -and (Test-Path (Join-Path $Hint "Engine\Build\BatchFiles\Build.bat"))) {
         return (Resolve-Path $Hint).Path
     }
 
     $candidates = @(
-        "C:\Program Files\Epic Games\UE_5.6",
+        "C:\Program Files\Epic Games\UE_5.8",
         "C:\Program Files\Epic Games\UE_5.7",
+        "C:\Program Files\Epic Games\UE_5.6",
+        "D:\Program Files\Epic Games\UE_5.8",
         "D:\Program Files\Epic Games\UE_5.6",
-        "D:\UE_5.6"
+        "D:\UE_5.8"
     )
     foreach ($path in $candidates) {
         $drive = Split-Path -Qualifier $path -ErrorAction SilentlyContinue
@@ -44,15 +47,27 @@ function Find-UE56 {
             }
         }
     }
+
+    # Fallback: scan Epic Games folder for UE_* installs.
+    $epicRoot = "C:\Program Files\Epic Games"
+    if (Test-Path $epicRoot) {
+        $found = Get-ChildItem $epicRoot -Directory -Filter "UE_5.*" -ErrorAction SilentlyContinue |
+            Sort-Object Name -Descending |
+            Where-Object { Test-Path (Join-Path $_.FullName "Engine\Build\BatchFiles\Build.bat") } |
+            Select-Object -First 1
+        if ($found) {
+            return $found.FullName
+        }
+    }
     return $null
 }
 
-$Engine = Find-UE56 -Hint $EngineRoot
+$Engine = Find-UEEngine -Hint $EngineRoot
 if (-not $Engine) {
     Write-Host "Unreal Engine 5.6+ was not found."
-    Write-Host "Install UE 5.6 from the Epic Games Launcher, then rerun:"
+    Write-Host "Install UE 5.8 (or 5.6+) from the Epic Games Launcher, then rerun:"
     Write-Host "  .\scripts\setup_unreal.ps1"
-    Write-Host "Or pass -EngineRoot 'C:\Path\To\UE_5.6'"
+    Write-Host "Or pass -EngineRoot 'C:\Program Files\Epic Games\UE_5.8'"
     exit 2
 }
 
@@ -72,7 +87,15 @@ if ($SkipBuild) {
 }
 
 Write-Host "Building SFRouteRacerEditor (Development Win64)..."
-& $BuildBat SFRouteRacerEditor Win64 Development -Project="$UProject" -WaitMutex
+$BuildArgs = @(
+    "SFRouteRacerEditor", "Win64", "Development",
+    "-Project=$UProject",
+    "-WaitMutex"
+)
+if ($MaxParallelActions -gt 0) {
+    $BuildArgs += "-MaxParallelActions=$MaxParallelActions"
+}
+& $BuildBat @BuildArgs
 if ($LASTEXITCODE -ne 0) {
     throw "Unreal build failed with exit code $LASTEXITCODE"
 }

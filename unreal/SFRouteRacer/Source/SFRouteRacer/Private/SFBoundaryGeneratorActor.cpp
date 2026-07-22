@@ -68,10 +68,10 @@ void ASFBoundaryGeneratorActor::GenerateFromLoadedMap()
 	const FVector NE = USFGeoCoordinateLibrary::Point2DLocalToUnreal(MaxX, MaxY, 0.0);
 
 	TArray<FWall> Walls;
-	Walls.Add({(SW + SE) * 0.5f, (SE - SW).Rotation(), FVector::Dist(SW, SE)});
-	Walls.Add({(NW + NE) * 0.5f, (NE - NW).Rotation(), FVector::Dist(NW, NE)});
-	Walls.Add({(SW + NW) * 0.5f, (NW - SW).Rotation(), FVector::Dist(SW, NW)});
-	Walls.Add({(SE + NE) * 0.5f, (NE - SE).Rotation(), FVector::Dist(SE, NE)});
+	Walls.Add({(SW + SE) * 0.5f, (SE - SW).Rotation(), static_cast<float>(FVector::Dist(SW, SE))});
+	Walls.Add({(NW + NE) * 0.5f, (NE - NW).Rotation(), static_cast<float>(FVector::Dist(NW, NE))});
+	Walls.Add({(SW + NW) * 0.5f, (NW - SW).Rotation(), static_cast<float>(FVector::Dist(SW, NW))});
+	Walls.Add({(SE + NE) * 0.5f, (NE - SE).Rotation(), static_cast<float>(FVector::Dist(SE, NE))});
 
 	FActorSpawnParameters Params;
 	Params.Owner = this;

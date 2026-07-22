@@ -205,7 +205,7 @@ void ASFVehiclePawn::Tick(float DeltaSeconds)
 	Location += GetActorForwardVector() * (CurrentSpeedCmPerSec * DeltaSeconds);
 
 	const FVector TraceStart = Location + FVector(0.0f, 0.0f, GroundProbeHeightCm);
-	const FVector TraceEnd = Location - FVector(0.0f, 0.0f, GroundProbeHeightCm * 4.0f);
+	const FVector TraceEnd = Location - FVector(0.0f, 0.0f, GroundProbeDepthCm);
 	FHitResult Hit;
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(SFVehicleGround), false, this);
 	if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_Visibility, Params)

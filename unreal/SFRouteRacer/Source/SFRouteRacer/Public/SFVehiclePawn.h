@@ -114,7 +114,10 @@ protected:
 	float HandbrakeTurnMultiplier = 1.45f;
 
 	UPROPERTY(EditAnywhere, Category = "SF|Vehicle")
-	float GroundProbeHeightCm = 250.0f;
+	float GroundProbeHeightCm = 800.0f;
+
+	UPROPERTY(EditAnywhere, Category = "SF|Vehicle")
+	float GroundProbeDepthCm = 2000.0f;
 
 	UPROPERTY(EditAnywhere, Category = "SF|Vehicle")
 	float RideHeightCm = 55.0f;

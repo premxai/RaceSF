@@ -1,6 +1,14 @@
 #include "SFRouteRacerGameMode.h"
 
+#include "Components/DirectionalLightComponent.h"
+#include "Components/ExponentialHeightFogComponent.h"
+#include "Components/SkyAtmosphereComponent.h"
+#include "Components/SkyLightComponent.h"
+#include "Engine/DirectionalLight.h"
+#include "Engine/ExponentialHeightFog.h"
 #include "Engine/GameInstance.h"
+#include "Engine/SkyLight.h"
+#include "Kismet/GameplayStatics.h"
 #include "SFBoundaryGeneratorActor.h"
 #include "SFBuildingTileActor.h"
 #include "SFDebugDrawActor.h"
@@ -29,6 +37,7 @@ ASFRouteRacerGameMode::ASFRouteRacerGameMode()
 void ASFRouteRacerGameMode::StartPlay()
 {
 	Super::StartPlay();
+	EnsureWorldLighting();
 	if (bSpawnMapActorsOnStart)
 	{
 		BootstrapGrayboxWorld();
@@ -37,6 +46,73 @@ void ASFRouteRacerGameMode::StartPlay()
 	{
 		BeginDefaultRace();
 	}
+}
+
+void ASFRouteRacerGameMode::EnsureWorldLighting()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	TArray<AActor*> Existing;
+	UGameplayStatics::GetAllActorsOfClass(World, ADirectionalLight::StaticClass(), Existing);
+	if (Existing.Num() == 0)
+	{
+		ADirectionalLight* Sun = World->SpawnActor<ADirectionalLight>(
+			ADirectionalLight::StaticClass(),
+			FVector::ZeroVector,
+			FRotator(-50.0f, 35.0f, 0.0f),
+			SpawnParams);
+		if (Sun && Sun->GetLightComponent())
+		{
+			Sun->GetLightComponent()->SetIntensity(12.0f);
+			Sun->GetLightComponent()->SetLightColor(FLinearColor(1.0f, 0.96f, 0.9f));
+			Sun->GetLightComponent()->SetMobility(EComponentMobility::Movable);
+			Sun->GetLightComponent()->SetCastShadows(true);
+		}
+	}
+
+	Existing.Reset();
+	UGameplayStatics::GetAllActorsOfClass(World, ASkyLight::StaticClass(), Existing);
+	if (Existing.Num() == 0)
+	{
+		ASkyLight* Sky = World->SpawnActor<ASkyLight>(ASkyLight::StaticClass(), FTransform::Identity, SpawnParams);
+		if (Sky && Sky->GetLightComponent())
+		{
+			Sky->GetLightComponent()->SetIntensity(1.5f);
+			Sky->GetLightComponent()->bRealTimeCapture = true;
+			Sky->GetLightComponent()->SetMobility(EComponentMobility::Movable);
+			Sky->GetLightComponent()->RecaptureSky();
+		}
+	}
+
+	Existing.Reset();
+	UGameplayStatics::GetAllActorsOfClass(World, ASkyAtmosphere::StaticClass(), Existing);
+	if (Existing.Num() == 0)
+	{
+		World->SpawnActor<ASkyAtmosphere>(ASkyAtmosphere::StaticClass(), FTransform::Identity, SpawnParams);
+	}
+
+	Existing.Reset();
+	UGameplayStatics::GetAllActorsOfClass(World, AExponentialHeightFog::StaticClass(), Existing);
+	if (Existing.Num() == 0)
+	{
+		AExponentialHeightFog* Fog = World->SpawnActor<AExponentialHeightFog>(
+			AExponentialHeightFog::StaticClass(), FTransform::Identity, SpawnParams);
+		if (Fog && Fog->GetComponent())
+		{
+			Fog->GetComponent()->SetFogDensity(0.0015f);
+			Fog->GetComponent()->SetFogHeightFalloff(0.15f);
+		}
+	}
+
+	UE_LOG(LogSFRace, Log, TEXT("World lighting ensured for graybox play"));
 }
 
 bool ASFRouteRacerGameMode::BootstrapGrayboxWorld()
@@ -139,7 +215,7 @@ bool ASFRouteRacerGameMode::BootstrapGrayboxWorld()
 			if (APawn* Pawn = PC->GetPawn())
 			{
 				const FVector StartLocation = USFGeoCoordinateLibrary::Point2DLocalToUnreal(
-					Start.Spawn.XMeters, Start.Spawn.YMeters, 50.0);
+					Start.Spawn.XMeters, Start.Spawn.YMeters, 2.0);
 				const FRotator StartRotation(0.0f, Start.Spawn.HeadingDegrees, 0.0f);
 				Pawn->SetActorLocationAndRotation(
 					StartLocation, StartRotation, false, nullptr, ETeleportType::TeleportPhysics);

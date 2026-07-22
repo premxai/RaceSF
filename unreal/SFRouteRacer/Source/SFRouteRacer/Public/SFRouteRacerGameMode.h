@@ -31,6 +31,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SF|Map")
 	bool BootstrapGrayboxWorld();
 
+	UFUNCTION(BlueprintCallable, Category = "SF|Map")
+	void EnsureWorldLighting();
+
 	UFUNCTION(BlueprintCallable, Category = "SF|Race")
 	bool BeginDefaultRace();
 

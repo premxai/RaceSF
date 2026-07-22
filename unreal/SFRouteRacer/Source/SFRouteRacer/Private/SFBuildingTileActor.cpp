@@ -1,6 +1,7 @@
 #include "SFBuildingTileActor.h"
 
 #include "Engine/GameInstance.h"
+#include "Materials/MaterialInterface.h"
 #include "ProceduralMeshComponent.h"
 #include "SFGeoCoordinateLibrary.h"
 #include "SFMapDataSubsystem.h"
@@ -123,7 +124,14 @@ void ASFBuildingTileActor::BuildFromTileId(const FString& InTileId)
 				Triangles.Append({RoofStart, Index * 2 + 1, Next * 2 + 1});
 			}
 
-			BuildingMesh->CreateMeshSection_LinearColor(Section++, Vertices, Triangles, Normals, UV0, Colors, Tangents, bEnableCollision);
+			BuildingMesh->CreateMeshSection_LinearColor(Section, Vertices, Triangles, Normals, UV0, Colors, Tangents, bEnableCollision);
+			static UMaterialInterface* BuildingMaterial = LoadObject<UMaterialInterface>(
+				nullptr, TEXT("/Engine/EngineMaterials/WorldGridMaterial.WorldGridMaterial"));
+			if (BuildingMaterial)
+			{
+				BuildingMesh->SetMaterial(Section, BuildingMaterial);
+			}
+			++Section;
 		}
 	}
 
@@ -197,7 +205,14 @@ void ASFBuildingTileActor::BuildAllLoadedTiles()
 				Triangles.Append({BaseB, BaseB + 1, BaseA + 1});
 			}
 
-			BuildingMesh->CreateMeshSection_LinearColor(Section++, Vertices, Triangles, Normals, UV0, Colors, Tangents, bEnableCollision);
+			BuildingMesh->CreateMeshSection_LinearColor(Section, Vertices, Triangles, Normals, UV0, Colors, Tangents, bEnableCollision);
+			static UMaterialInterface* BuildingMaterial = LoadObject<UMaterialInterface>(
+				nullptr, TEXT("/Engine/EngineMaterials/WorldGridMaterial.WorldGridMaterial"));
+			if (BuildingMaterial)
+			{
+				BuildingMesh->SetMaterial(Section, BuildingMaterial);
+			}
+			++Section;
 		}
 	}
 

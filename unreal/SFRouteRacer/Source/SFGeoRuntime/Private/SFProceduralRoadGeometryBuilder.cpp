@@ -1,8 +1,9 @@
 #include "SFProceduralRoadGeometryBuilder.h"
 
+#include "Materials/MaterialInterface.h"
+#include "ProceduralMeshComponent.h"
 #include "SFGeoCoordinateLibrary.h"
 #include "SFGeoRuntime.h"
-#include "ProceduralMeshComponent.h"
 
 bool USFProceduralRoadGeometryBuilder::BuildRoadMesh(
 	UObject* WorldContextObject,
@@ -71,6 +72,13 @@ bool USFProceduralRoadGeometryBuilder::BuildRoadMesh(
 		Colors,
 		Tangents,
 		true);
+
+	static UMaterialInterface* RoadMaterial = LoadObject<UMaterialInterface>(
+		nullptr, TEXT("/Engine/EngineMaterials/WorldGridMaterial.WorldGridMaterial"));
+	if (RoadMaterial)
+	{
+		TargetMesh->SetMaterial(SectionIndex, RoadMaterial);
+	}
 
 	// Edge markings for larger roads (visual only, no extra collision sections).
 	if (Edge.TotalWidthMeters >= 8.0f)

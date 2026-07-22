@@ -8,6 +8,7 @@ San Francisco landmarks while remaining free to abandon any suggested route.
 - Milestone 1 complete: offline OSM/Overture data pipeline, flagship routes, preview
 - Milestone 2 complete (source): Unreal graybox modules; compile unverified without UE 5.6
 - Milestone 3 complete (source): race loop, save game, choose/quick/daily race helpers
+- Milestone 4 complete (source): route highlights, minimap capture, throttled rerouting
 
 ## Quick start (data)
 

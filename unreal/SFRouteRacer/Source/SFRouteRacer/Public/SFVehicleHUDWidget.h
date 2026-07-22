@@ -24,4 +24,10 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "SF|UI")
 	void SetReroutingVisible(bool bVisible);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "SF|UI")
+	void SetActiveRouteProfile(const FString& Profile);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "SF|UI")
+	void SetMinimapTexture(class UTextureRenderTarget2D* RenderTarget);
 };

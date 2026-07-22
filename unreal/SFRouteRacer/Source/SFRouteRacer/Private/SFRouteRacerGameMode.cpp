@@ -5,9 +5,12 @@
 #include "SFDestinationMarker.h"
 #include "SFGeoCoordinateLibrary.h"
 #include "SFMapDataSubsystem.h"
+#include "SFMinimapCaptureActor.h"
+#include "SFNavigationSubsystem.h"
 #include "SFRaceManager.h"
 #include "SFRaceSubsystem.h"
 #include "SFRoadNetworkActor.h"
+#include "SFRouteHighlightActor.h"
 #include "SFRouteRacer.h"
 #include "SFRouteRacerPlayerController.h"
 #include "SFRoutingSubsystem.h"
@@ -56,10 +59,18 @@ bool ASFRouteRacerGameMode::BootstrapGrayboxWorld()
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
-	RoadNetworkActor = GetWorld()->SpawnActor<ASFRoadNetworkActor>(ASFRoadNetworkActor::StaticClass(), FTransform::Identity, SpawnParams);
-	BuildingTileActor = GetWorld()->SpawnActor<ASFBuildingTileActor>(ASFBuildingTileActor::StaticClass(), FTransform::Identity, SpawnParams);
-	DestinationMarker = GetWorld()->SpawnActor<ASFDestinationMarker>(ASFDestinationMarker::StaticClass(), FTransform::Identity, SpawnParams);
-	RaceManager = GetWorld()->SpawnActor<ASFRaceManager>(ASFRaceManager::StaticClass(), FTransform::Identity, SpawnParams);
+	RoadNetworkActor = GetWorld()->SpawnActor<ASFRoadNetworkActor>(
+		ASFRoadNetworkActor::StaticClass(), FTransform::Identity, SpawnParams);
+	BuildingTileActor = GetWorld()->SpawnActor<ASFBuildingTileActor>(
+		ASFBuildingTileActor::StaticClass(), FTransform::Identity, SpawnParams);
+	DestinationMarker = GetWorld()->SpawnActor<ASFDestinationMarker>(
+		ASFDestinationMarker::StaticClass(), FTransform::Identity, SpawnParams);
+	RaceManager = GetWorld()->SpawnActor<ASFRaceManager>(
+		ASFRaceManager::StaticClass(), FTransform::Identity, SpawnParams);
+	RouteHighlightActor = GetWorld()->SpawnActor<ASFRouteHighlightActor>(
+		ASFRouteHighlightActor::StaticClass(), FTransform::Identity, SpawnParams);
+	MinimapCaptureActor = GetWorld()->SpawnActor<ASFMinimapCaptureActor>(
+		ASFMinimapCaptureActor::StaticClass(), FTransform::Identity, SpawnParams);
 
 	if (RoadNetworkActor)
 	{
@@ -78,10 +89,16 @@ bool ASFRouteRacerGameMode::BootstrapGrayboxWorld()
 			RaceSubsystem->SetRaceState(ESFRaceState::MapLoading);
 		}
 	}
+	if (USFNavigationSubsystem* Navigation = GetWorld()->GetSubsystem<USFNavigationSubsystem>())
+	{
+		Navigation->BindActors(RouteHighlightActor, DestinationMarker, MinimapCaptureActor);
+	}
 
 	FSFRaceDefinitionData Race;
 	FSFLandmarkData Destination;
-	if (MapData->FindRace(DefaultRaceId, Race) && MapData->FindLandmark(Race.DestinationLandmarkId, Destination) && Destination.bHasSpawn)
+	if (MapData->FindRace(DefaultRaceId, Race)
+		&& MapData->FindLandmark(Race.DestinationLandmarkId, Destination)
+		&& Destination.bHasSpawn)
 	{
 		const FVector DestLocation = USFGeoCoordinateLibrary::Point2DLocalToUnreal(
 			Destination.Spawn.XMeters, Destination.Spawn.YMeters, 0.0);
@@ -90,10 +107,16 @@ bool ASFRouteRacerGameMode::BootstrapGrayboxWorld()
 			DestinationMarker->SetActorLocation(DestLocation);
 			DestinationMarker->SetDestinationRadiusMeters(25.0f);
 		}
+		if (USFNavigationSubsystem* Navigation = GetWorld()->GetSubsystem<USFNavigationSubsystem>())
+		{
+			Navigation->SetDestinationNodeId(Destination.Spawn.NodeId);
+		}
 	}
 
 	FSFLandmarkData Start;
-	if (MapData->FindRace(DefaultRaceId, Race) && MapData->FindLandmark(Race.StartLandmarkId, Start) && Start.bHasSpawn)
+	if (MapData->FindRace(DefaultRaceId, Race)
+		&& MapData->FindLandmark(Race.StartLandmarkId, Start)
+		&& Start.bHasSpawn)
 	{
 		if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
 		{
@@ -104,6 +127,10 @@ bool ASFRouteRacerGameMode::BootstrapGrayboxWorld()
 				const FRotator StartRotation(0.0f, Start.Spawn.HeadingDegrees, 0.0f);
 				Pawn->SetActorLocationAndRotation(
 					StartLocation, StartRotation, false, nullptr, ETeleportType::TeleportPhysics);
+			}
+			if (MinimapCaptureActor)
+			{
+				MinimapCaptureActor->SetFollowTarget(PC->GetPawn());
 			}
 		}
 	}

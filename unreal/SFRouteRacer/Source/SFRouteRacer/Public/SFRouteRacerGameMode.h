@@ -8,6 +8,8 @@ class ASFRoadNetworkActor;
 class ASFBuildingTileActor;
 class ASFDestinationMarker;
 class ASFRaceManager;
+class ASFRouteHighlightActor;
+class ASFMinimapCaptureActor;
 class ASFVehiclePawn;
 
 /**
@@ -56,4 +58,10 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<ASFRaceManager> RaceManager;
+
+	UPROPERTY()
+	TObjectPtr<ASFRouteHighlightActor> RouteHighlightActor;
+
+	UPROPERTY()
+	TObjectPtr<ASFMinimapCaptureActor> MinimapCaptureActor;
 };

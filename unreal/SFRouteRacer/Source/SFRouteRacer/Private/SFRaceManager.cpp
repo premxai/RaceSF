@@ -5,9 +5,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "SFDestinationMarker.h"
 #include "SFMapDataSubsystem.h"
+#include "SFNavigationSubsystem.h"
 #include "SFRaceSubsystem.h"
 #include "SFRouteRacer.h"
 #include "SFRouteRacerPlayerController.h"
+#include "SFRoutingSubsystem.h"
 #include "SFSaveGame.h"
 #include "SFVehiclePawn.h"
 
@@ -91,6 +93,40 @@ bool ASFRaceManager::StartRace(const FString& RaceId, const FString& InSelectedR
 	CountdownValue = 3;
 	CountdownTimer = 0.0f;
 	bHasLastVehicleLocation = false;
+
+	const FSFSuggestedRouteData* Selected = nullptr;
+	for (const FSFSuggestedRouteData& Route : Race.Routes)
+	{
+		if (Route.Profile.Equals(SelectedRouteProfile, ESearchCase::IgnoreCase))
+		{
+			Selected = &Route;
+			break;
+		}
+	}
+	if (!Selected && Race.Routes.Num() > 0)
+	{
+		Selected = &Race.Routes[0];
+	}
+	if (Selected)
+	{
+		if (USFNavigationSubsystem* Navigation = GetWorld()->GetSubsystem<USFNavigationSubsystem>())
+		{
+			FSFRoutePath Path;
+			Path.EdgeIds = Selected->EdgeIds;
+			Path.NodeIds = Selected->NodeIds;
+			Path.DistanceMeters = Selected->DistanceMeters;
+			Path.TravelTimeSeconds = Selected->EstimatedTimeSeconds;
+			Path.bValid = true;
+			Navigation->SetActiveRoute(Path, Selected->Profile);
+
+			FSFLandmarkData DestinationLandmark;
+			if (MapData->FindLandmark(Race.DestinationLandmarkId, DestinationLandmark)
+				&& DestinationLandmark.bHasSpawn)
+			{
+				Navigation->SetDestinationNodeId(DestinationLandmark.Spawn.NodeId);
+			}
+		}
+	}
 
 	SetRaceState(ESFRaceState::VehicleSpawn);
 	SetRaceState(ESFRaceState::Countdown);

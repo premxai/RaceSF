@@ -45,9 +45,10 @@ ASFVehiclePawn::ASFVehiclePawn()
 	ChaseSpringArm->SetupAttachment(RootComponent);
 	ChaseSpringArm->TargetArmLength = 650.0f;
 	ChaseSpringArm->SocketOffset = FVector(0.0f, 0.0f, 180.0f);
-	ChaseSpringArm->bDoCollisionTest = true;
+	ChaseSpringArm->bDoCollisionTest = false;
 	ChaseSpringArm->bInheritPitch = false;
 	ChaseSpringArm->bInheritRoll = false;
+	ChaseSpringArm->SetRelativeRotation(FRotator(-15.0f, 0.0f, 0.0f));
 
 	ChaseCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ChaseCamera"));
 	ChaseCamera->SetupAttachment(ChaseSpringArm, USpringArmComponent::SocketName);

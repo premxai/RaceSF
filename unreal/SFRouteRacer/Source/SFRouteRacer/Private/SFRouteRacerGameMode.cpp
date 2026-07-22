@@ -286,6 +286,7 @@ bool ASFRouteRacerGameMode::BootstrapGrayboxWorld()
 				{
 					Vehicle->CaptureSpawnTransform();
 				}
+				PC->SetViewTarget(Pawn);
 				UE_LOG(LogSFRace, Warning, TEXT("Player start at %s (Ferry Building local area)"), *StartLocation.ToCompactString());
 			}
 			if (MinimapCaptureActor)

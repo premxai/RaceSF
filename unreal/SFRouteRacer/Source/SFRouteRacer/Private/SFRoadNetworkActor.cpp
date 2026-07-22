@@ -47,6 +47,7 @@ void ASFRoadNetworkActor::RebuildFromMapData()
 	}
 
 	RoadMesh->ClearAllMeshSections();
+	RoadMesh->bUseAsyncCooking = false;
 
 	int32 SectionIndex = 0;
 	int32 Built = 0;
@@ -67,5 +68,6 @@ void ASFRoadNetworkActor::RebuildFromMapData()
 		}
 	}
 
-	UE_LOG(LogSFRace, Log, TEXT("Road network built %d edge meshes"), Built);
+	RoadMesh->MarkRenderStateDirty();
+	UE_LOG(LogSFRace, Log, TEXT("Road network built %d edge meshes (%d sections)"), Built, SectionIndex);
 }

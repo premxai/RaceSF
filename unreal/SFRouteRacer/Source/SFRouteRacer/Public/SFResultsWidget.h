@@ -11,5 +11,11 @@ class SFROUTERACER_API USFResultsWidget : public UUserWidget
 
 public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "SF|UI")
-	void ShowResults(float CompletionSeconds, float DistanceMeters, int32 RerouteCount);
+	void ShowResults(
+		float CompletionSeconds,
+		float DistanceMeters,
+		float SuggestedDistanceMeters,
+		const FString& SelectedRouteProfile,
+		int32 RerouteCount,
+		float BestTimeSeconds);
 };

@@ -6,66 +6,45 @@ Status values: Not started · In progress · Complete · Blocked
 
 ## Milestone 1 — Data proof
 
-- Complete — Repository structure and project configuration
-- Complete — Typed geospatial data contracts
-- Complete — Cached OSM road download
-- Complete — Road graph normalization
-- Complete — Six-landmark snapping and directed connectivity
-- Complete — Alternative route generation and scoring
-- Complete — Overture building download and normalization
-- Complete — Tiled, versioned Unreal JSON export
-- Complete — Interactive HTML preview
-- Complete — Validation and acceptance tests
-- Complete — Formatting, static checks, and tests
-- Complete — Pushed to https://github.com/premxai/RaceSF.git (`8de34c0`)
+- Complete — Offline SF data pipeline, preview, tests
+- Complete — Pushed (`8de34c0`)
 
 ## Milestone 2 — Unreal graybox
 
-- Complete — Unreal project structure and three C++ modules
-- Complete — Schema-checked JSON map loading (`FSFMapJsonLoader`)
-- Complete — Coordinate conversion library (`USFGeoCoordinateLibrary`)
-- Complete — Map / routing / race subsystems
-- Complete — Road graybox geometry via procedural mesh builder
-- Complete — Building graybox masses (combined tile meshes)
-- Complete — Chaos vehicle pawn foundation and chase camera
-- Complete — Destination marker, race manager stub, UMG widget bases
-- Complete — Editor import menu action
-- Complete — Automation fixtures under `Content/TestData/sf_mvp_fixture`
-- Complete — Build/setup docs with unverified compile status
-- Blocked — Full Unreal compile (UE 5.6 not installed in this environment)
-- Not started — Editor-authored World Partition map asset and vehicle Blueprint assets
+- Complete — Unreal C++ modules, JSON loaders, road/building graybox, vehicle foundation
+- Complete — Pushed (`8d38564`)
+- Blocked — Full Unreal compile (UE 5.6 not installed here)
+
+## Milestone 3 — Race loop
+
+- Complete — Race state machine (menu → selection → loading → spawn → countdown → racing → results)
+- Complete — Countdown 3-2-1-GO and race timer
+- Complete — Destination overlap finish (25 m radius)
+- Complete — Results metrics + local best-time save game
+- Complete — Choose Race / Quick Race / Daily Run (local prototype) helpers
+- Complete — Multi-pair route generation for Choose/Quick Race data
+- Complete — Automation tests for race state transitions
+- Blocked — In-editor UMG Blueprint widgets and live play verification without UE 5.6
 
 ## Later milestones
 
-- Not started — Milestone 3: Race loop
 - Not started — Milestone 4: Navigation
 - Not started — Milestone 5: Presentation
 
 ## Verification log
 
-Milestone 1:
-
 - `python -m pytest` — 11 passed
-- `python -m sf_racer_geo.cli build-all --verbose` — complete from cached sources
-
-Milestone 2:
-
-- Source and configs authored under `unreal/SFRouteRacer`
-- Tiny fixture export checked in for automation tests
-- Unreal Engine 5.6 was not found on this machine (Epic install list has no UE_5.6)
-- Unreal compilation therefore remains **unverified**
-- No fabricated build success claims
+- `python -m sf_racer_geo.cli generate-routes` / `validate` / `export-unreal` — complete after multi-pair race generation
+- Unreal compile — unverified (no UE 5.6 install)
 
 ## Known limitations
 
-- UE 5.6 + Visual Studio compile has not been run
-- Enhanced Input assets and Chaos vehicle Blueprint must be created in-editor
-- World Partition map `SFWaterfrontMVP` is referenced but not yet baked as a `.umap`
-- Building collision is disabled by default for graybox performance
-- Explorer route still omitted under the 80% overlap gate from Milestone 1
+- UE 5.6 compile and PIE verification remain unverified
+- HUD/results Blueprint widgets still need editor authoring on top of C++ bases
+- World Partition map asset still needs editor creation
+- Explorer route still often omitted by overlap gate
 
 ## Exact next step
 
-On a UE 5.6 machine: generate project files, compile, create the World Partition map and
-vehicle Blueprint, run Session Frontend automation tests, then start Milestone 3 race loop
-wiring (countdown, timer, results, save best time).
+Milestone 4: route cards UI wiring, minimap SceneCapture, route highlighting, destination
+distance/guidance, and throttled runtime rerouting in `USFRoutingSubsystem`.

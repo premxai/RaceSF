@@ -135,26 +135,62 @@ def generate_flagship(
     landmarks: list[Landmark],
     output_path: Path | None = None,
 ) -> RaceDefinition:
-    by_id = {landmark.id: landmark for landmark in landmarks}
-    start = by_id["ferry_building"].spawn
-    destination = by_id["chase_center"].spawn
-    if start is None or destination is None:
-        raise RouteGenerationError("Flagship landmarks must be snapped before route generation")
-    settings = load_json(PROJECT_ROOT / "config" / "route_profiles.json")
-    race = RaceDefinition(
-        race_id="ferry_building_to_chase_center",
-        start_landmark_id="ferry_building",
-        destination_landmark_id="chase_center",
-        routes=generate_route_options(
-            graph,
-            edges,
-            start.node_id,
-            destination.node_id,
-            int(settings["candidate_count"]),
-            float(settings["max_overlap_ratio"]),
-            float(settings["max_distance_ratio"]),
-        ),
+    races = generate_all_supported_races(graph, edges, landmarks, output_path)
+    flagship = next(
+        (race for race in races if race.race_id == "ferry_building_to_chase_center"),
+        None,
     )
+    if flagship is None:
+        raise RouteGenerationError("Flagship Ferry Building to Chase Center race was not generated")
+    return flagship
+
+
+def generate_all_supported_races(
+    graph: nx.DiGraph,
+    edges: dict[str, RoadEdge],
+    landmarks: list[Landmark],
+    output_path: Path | None = None,
+) -> list[RaceDefinition]:
+    settings = load_json(PROJECT_ROOT / "config" / "route_profiles.json")
+    min_distance = float(settings["minimum_pair_distance_m"])
+    max_distance = float(settings["maximum_pair_distance_m"])
+    races: list[RaceDefinition] = []
+
+    enabled = [landmark for landmark in landmarks if landmark.enabled and landmark.spawn]
+    for start in enabled:
+        for destination in enabled:
+            if start.id == destination.id:
+                continue
+            assert start.spawn is not None and destination.spawn is not None
+            try:
+                routes = generate_route_options(
+                    graph,
+                    edges,
+                    start.spawn.node_id,
+                    destination.spawn.node_id,
+                    int(settings["candidate_count"]),
+                    float(settings["max_overlap_ratio"]),
+                    float(settings["max_distance_ratio"]),
+                )
+            except RouteGenerationError:
+                continue
+            fastest = routes[0].distance_m
+            if fastest < min_distance or fastest > max_distance:
+                continue
+            races.append(
+                RaceDefinition(
+                    race_id=f"{start.id}_to_{destination.id}",
+                    start_landmark_id=start.id,
+                    destination_landmark_id=destination.id,
+                    routes=routes,
+                )
+            )
+
+    if not any(race.race_id == "ferry_building_to_chase_center" for race in races):
+        raise RouteGenerationError("Flagship Ferry Building to Chase Center race was not generated")
+
     output_path = output_path or PROJECT_ROOT / "data" / "processed" / "races.json"
-    output_path.write_text(json.dumps([race.model_dump()], indent=2), encoding="utf-8")
-    return race
+    output_path.write_text(
+        json.dumps([race.model_dump() for race in races], indent=2), encoding="utf-8"
+    )
+    return races

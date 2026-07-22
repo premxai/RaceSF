@@ -6,8 +6,8 @@ San Francisco landmarks while remaining free to abandon any suggested route.
 ## Current status
 
 - Milestone 1 complete: offline OSM/Overture data pipeline, flagship routes, preview
-- Milestone 2 in progress: Unreal C++ graybox project, map loading, roads/buildings,
-  Chaos vehicle foundation
+- Milestone 2 complete (source): Unreal graybox modules; compile unverified without UE 5.6
+- Milestone 3 complete (source): race loop, save game, choose/quick/daily race helpers
 
 ## Quick start (data)
 

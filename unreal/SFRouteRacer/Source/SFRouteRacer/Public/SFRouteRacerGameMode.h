@@ -7,10 +7,11 @@
 class ASFRoadNetworkActor;
 class ASFBuildingTileActor;
 class ASFDestinationMarker;
+class ASFRaceManager;
 class ASFVehiclePawn;
 
 /**
- * Graybox map bootstrap and default pawn selection for the SF MVP.
+ * Graybox map bootstrap, race manager spawn, and default pawn selection.
  */
 UCLASS()
 class SFROUTERACER_API ASFRouteRacerGameMode : public AGameModeBase
@@ -25,6 +26,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SF|Map")
 	bool BootstrapGrayboxWorld();
 
+	UFUNCTION(BlueprintCallable, Category = "SF|Race")
+	bool BeginDefaultRace();
+
+	UFUNCTION(BlueprintPure, Category = "SF|Race")
+	ASFRaceManager* GetRaceManager() const { return RaceManager; }
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "SF|Map")
 	TSubclassOf<ASFVehiclePawn> VehicleClass;
@@ -35,6 +42,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "SF|Map")
 	bool bSpawnMapActorsOnStart = true;
 
+	UPROPERTY(EditAnywhere, Category = "SF|Race")
+	bool bAutoStartDefaultRace = true;
+
 	UPROPERTY()
 	TObjectPtr<ASFRoadNetworkActor> RoadNetworkActor;
 
@@ -43,4 +53,7 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<ASFDestinationMarker> DestinationMarker;
+
+	UPROPERTY()
+	TObjectPtr<ASFRaceManager> RaceManager;
 };

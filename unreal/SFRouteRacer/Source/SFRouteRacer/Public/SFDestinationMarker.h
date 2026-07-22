@@ -1,10 +1,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
 #include "SFDestinationMarker.generated.h"
 
-class USphereComponent;
 class UStaticMeshComponent;
 
 /**
@@ -23,6 +23,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "SF|Race")
 	float GetDestinationRadiusMeters() const { return DestinationRadiusMeters; }
+
+	UFUNCTION(BlueprintPure, Category = "SF|Race")
+	USphereComponent* GetFinishSphere() const { return FinishSphere; }
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SF|Race")

@@ -119,7 +119,7 @@ def generate_routes_command(verbose: VerboseOption = False) -> None:
         nodes, edges, landmarks, _, _ = _processed_for_routes()
         generate_flagship(build_graph(nodes, edges), {edge.id: edge for edge in edges}, landmarks)
 
-    _run("Generating distinct flagship routes", operation)
+    _run("Generating supported race route cards", operation)
 
 
 def _processed_for_routes() -> tuple[list[RoadNode], list[RoadEdge], list[Landmark], list, list]:

@@ -5,6 +5,8 @@
 #include "SFDestinationMarker.h"
 #include "SFGeoCoordinateLibrary.h"
 #include "SFMapDataSubsystem.h"
+#include "SFRaceManager.h"
+#include "SFRaceSubsystem.h"
 #include "SFRoadNetworkActor.h"
 #include "SFRouteRacer.h"
 #include "SFRouteRacerPlayerController.h"
@@ -24,6 +26,10 @@ void ASFRouteRacerGameMode::StartPlay()
 	if (bSpawnMapActorsOnStart)
 	{
 		BootstrapGrayboxWorld();
+	}
+	if (bAutoStartDefaultRace)
+	{
+		BeginDefaultRace();
 	}
 }
 
@@ -53,6 +59,7 @@ bool ASFRouteRacerGameMode::BootstrapGrayboxWorld()
 	RoadNetworkActor = GetWorld()->SpawnActor<ASFRoadNetworkActor>(ASFRoadNetworkActor::StaticClass(), FTransform::Identity, SpawnParams);
 	BuildingTileActor = GetWorld()->SpawnActor<ASFBuildingTileActor>(ASFBuildingTileActor::StaticClass(), FTransform::Identity, SpawnParams);
 	DestinationMarker = GetWorld()->SpawnActor<ASFDestinationMarker>(ASFDestinationMarker::StaticClass(), FTransform::Identity, SpawnParams);
+	RaceManager = GetWorld()->SpawnActor<ASFRaceManager>(ASFRaceManager::StaticClass(), FTransform::Identity, SpawnParams);
 
 	if (RoadNetworkActor)
 	{
@@ -62,12 +69,22 @@ bool ASFRouteRacerGameMode::BootstrapGrayboxWorld()
 	{
 		BuildingTileActor->BuildAllLoadedTiles();
 	}
+	if (RaceManager)
+	{
+		RaceManager->BindDestinationMarker(DestinationMarker);
+		if (USFRaceSubsystem* RaceSubsystem = GameInstance->GetSubsystem<USFRaceSubsystem>())
+		{
+			RaceSubsystem->RegisterRaceManager(RaceManager);
+			RaceSubsystem->SetRaceState(ESFRaceState::MapLoading);
+		}
+	}
 
 	FSFRaceDefinitionData Race;
 	FSFLandmarkData Destination;
 	if (MapData->FindRace(DefaultRaceId, Race) && MapData->FindLandmark(Race.DestinationLandmarkId, Destination) && Destination.bHasSpawn)
 	{
-		const FVector DestLocation = USFGeoCoordinateLibrary::Point2DLocalToUnreal(Destination.Spawn.XMeters, Destination.Spawn.YMeters, 0.0);
+		const FVector DestLocation = USFGeoCoordinateLibrary::Point2DLocalToUnreal(
+			Destination.Spawn.XMeters, Destination.Spawn.YMeters, 0.0);
 		if (DestinationMarker)
 		{
 			DestinationMarker->SetActorLocation(DestLocation);
@@ -82,13 +99,32 @@ bool ASFRouteRacerGameMode::BootstrapGrayboxWorld()
 		{
 			if (APawn* Pawn = PC->GetPawn())
 			{
-				const FVector StartLocation = USFGeoCoordinateLibrary::Point2DLocalToUnreal(Start.Spawn.XMeters, Start.Spawn.YMeters, 50.0);
+				const FVector StartLocation = USFGeoCoordinateLibrary::Point2DLocalToUnreal(
+					Start.Spawn.XMeters, Start.Spawn.YMeters, 50.0);
 				const FRotator StartRotation(0.0f, Start.Spawn.HeadingDegrees, 0.0f);
-				Pawn->SetActorLocationAndRotation(StartLocation, StartRotation, false, nullptr, ETeleportType::TeleportPhysics);
+				Pawn->SetActorLocationAndRotation(
+					StartLocation, StartRotation, false, nullptr, ETeleportType::TeleportPhysics);
 			}
 		}
 	}
 
 	UE_LOG(LogSFRace, Log, TEXT("Graybox world bootstrap complete for race %s"), *DefaultRaceId);
 	return true;
+}
+
+bool ASFRouteRacerGameMode::BeginDefaultRace()
+{
+	if (!RaceManager)
+	{
+		UE_LOG(LogSFRace, Error, TEXT("BeginDefaultRace failed: race manager missing"));
+		return false;
+	}
+
+	if (USFRaceSubsystem* RaceSubsystem = GetGameInstance()->GetSubsystem<USFRaceSubsystem>())
+	{
+		RaceSubsystem->SetActiveRaceId(DefaultRaceId);
+		RaceSubsystem->SetSelectedRouteProfile(TEXT("fastest"));
+	}
+
+	return RaceManager->StartRace(DefaultRaceId, TEXT("fastest"));
 }

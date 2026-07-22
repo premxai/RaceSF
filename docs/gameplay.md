@@ -9,6 +9,17 @@ waterfront route, a SoMa grid route, and a balanced central route. Suggested rou
 may not exceed 1.6 times the fastest distance and are deduplicated using shared edge
 length.
 
-Planned modes are Choose Race, validated random Quick Race, and a deterministic local
-Daily Run prototype. The race flow is selection, loading, route choice, countdown,
-racing, destination completion, results, and restart/return.
+## Modes
+
+- **Choose Race** — pick start and destination landmarks; unsupported pairs stay disabled
+- **Quick Race** — random validated pair (≥1.5 km, ≥3 routes, avoid immediate repeat)
+- **Daily Run** — local deterministic pair from the calendar date (prototype, no backend)
+
+## Race loop
+
+Selection → map loading → vehicle spawn → countdown (`3 2 1 GO`) → racing → destination
+reached (25 m radius) → results → restart or return.
+
+Results store completion time, distance driven, selected route profile, suggested
+distance comparison, reroute count, and a local best time via `USFSaveGame`.
+

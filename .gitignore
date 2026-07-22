@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+.venv/
+dist/
+
+# Downloaded and generated geospatial data
+data/raw/*
+data/cache/*
+data/processed/*
+data/exports/*
+!data/**/.gitkeep
+
+# Unreal generated files (future milestone)
+unreal/**/Binaries/
+unreal/**/DerivedDataCache/
+unreal/**/Intermediate/
+unreal/**/Saved/
+unreal/**/*.sln
+
+# Editors and OS
+.vs/
+.idea/
+.DS_Store
+Thumbs.db

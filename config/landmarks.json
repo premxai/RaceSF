@@ -1,0 +1,8 @@
+[
+  {"id": "ferry_building", "name": "Ferry Building", "latitude": 37.7955, "longitude": -122.3937},
+  {"id": "salesforce_transit_center", "name": "Salesforce Transit Center", "latitude": 37.7897, "longitude": -122.3963},
+  {"id": "yerba_buena", "name": "Yerba Buena Gardens", "latitude": 37.7852, "longitude": -122.4029},
+  {"id": "oracle_park", "name": "Oracle Park", "latitude": 37.7786, "longitude": -122.3893},
+  {"id": "chase_center", "name": "Chase Center", "latitude": 37.7680, "longitude": -122.3877},
+  {"id": "mission_bay", "name": "Mission Bay", "latitude": 37.7707, "longitude": -122.3898}
+]

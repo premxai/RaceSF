@@ -1,0 +1,15 @@
+---
+description: Core SF Route Racer project constraints and milestone gates
+alwaysApply: true
+---
+
+# Project constraints
+
+- Build only the configured SF waterfront MVP; never expand scope implicitly.
+- Never use Google map, Street View, 3D Tiles, or scraped Google data.
+- Keep runtime map use offline and preserve source attribution metadata.
+- Use deterministic generation and stable IDs.
+- Keep `PROJECT_STATE.md` honest after meaningful phases.
+- Run formatting, static checks, and tests before marking a phase complete.
+- Do not claim Unreal compiled unless a real Unreal build command succeeded.
+- Do not begin a later milestone while current critical acceptance gates fail.

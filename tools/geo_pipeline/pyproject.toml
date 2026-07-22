@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sf-racer-geo"
+version = "0.1.0"
+description = "Deterministic geospatial preprocessing for SF Route Racer"
+requires-python = ">=3.12"
+dependencies = [
+  "geopandas>=1.0",
+  "networkx>=3.3",
+  "numpy>=2.0",
+  "osmnx>=2.0",
+  "pandas>=2.2",
+  "pydantic>=2.8",
+  "pyproj>=3.6",
+  "rich>=13.7",
+  "shapely>=2.0",
+  "typer>=0.12"
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.2", "pytest-cov>=5.0", "ruff>=0.5"]
+buildings = ["duckdb>=1.1", "overturemaps>=0.14", "pyarrow>=17.0"]
+mesh = ["trimesh>=4.4"]
+
+[project.scripts]
+sf-racer-geo = "sf_racer_geo.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sf_racer_geo"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]

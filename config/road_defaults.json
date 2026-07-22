@@ -1,0 +1,36 @@
+{
+  "lane_width_m": {
+    "motorway": 3.6,
+    "trunk": 3.5,
+    "primary": 3.5,
+    "secondary": 3.3,
+    "tertiary": 3.2,
+    "unclassified": 3.0,
+    "residential": 3.0,
+    "living_street": 3.0,
+    "service": 2.8
+  },
+  "total_lanes": {
+    "motorway": 4,
+    "trunk": 4,
+    "primary": 2,
+    "secondary": 2,
+    "tertiary": 2,
+    "unclassified": 2,
+    "residential": 2,
+    "living_street": 2,
+    "service": 1
+  },
+  "speed_limit_kph": {
+    "motorway": 90,
+    "trunk": 70,
+    "primary": 50,
+    "secondary": 45,
+    "tertiary": 40,
+    "unclassified": 35,
+    "residential": 30,
+    "living_street": 15,
+    "service": 20
+  },
+  "surface_margin_m": 1.0
+}

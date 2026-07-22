@@ -1,0 +1,16 @@
+---
+description: Unreal Engine C++ module and gameplay conventions
+globs: unreal/**/*.{h,cpp,cs,uproject,ini}
+alwaysApply: false
+---
+
+# Unreal conventions
+
+- Target Unreal Engine 5.6 or later and use Unreal naming conventions.
+- Keep gameplay/UI in `SFRouteRacer`, runtime geospatial code in `SFGeoRuntime`,
+  and editor dependencies in `SFRouteRacerEditor`.
+- Prefer subsystems over global singletons and avoid unnecessary Tick functions.
+- Validate schema versions and references before creating map actors.
+- Keep routing graph logic separate from rendered road geometry.
+- Put Blueprints behind C++ systems and use them for visual assembly and tuning.
+- Add automation tests for parsing, coordinates, routing, and race transitions.

@@ -1,0 +1,15 @@
+---
+description: Python geospatial pipeline conventions
+globs: tools/geo_pipeline/**/*.py
+alwaysApply: false
+---
+
+# Python pipeline
+
+- Target Python 3.12 with practical type hints and Pydantic boundary validation.
+- Keep coordinate conversion in `coordinates.py`; Unreal Y negation belongs there only.
+- Cache public downloads and make network tests opt-in.
+- Preserve malformed feature details in rejection reports.
+- Avoid unstructured dictionaries in business logic after ingestion.
+- Keep generated output deterministic; use stable hashes, not process-random values.
+- Run `ruff format`, `ruff check`, and `pytest` from `tools/geo_pipeline`.

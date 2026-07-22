@@ -1,0 +1,14 @@
+{
+  "candidate_count": 20,
+  "max_distance_ratio": 1.6,
+  "max_overlap_ratio": 0.8,
+  "minimum_pair_distance_m": 750,
+  "quick_race_minimum_distance_m": 1500,
+  "maximum_pair_distance_m": 7000,
+  "profiles": {
+    "fastest": {"time": 1.0, "distance": 0.15, "turns": 0.12, "waterfront": 0.0, "novelty": 0.0},
+    "balanced": {"time": 0.7, "distance": 0.25, "turns": 0.08, "waterfront": 0.05, "novelty": 0.15},
+    "scenic": {"time": 0.35, "distance": 0.2, "turns": 0.05, "waterfront": 0.65, "novelty": 0.15},
+    "explorer": {"time": 0.25, "distance": 0.2, "turns": -0.12, "waterfront": 0.0, "novelty": 0.8}
+  }
+}

@@ -74,7 +74,12 @@ bool USFProceduralRoadGeometryBuilder::BuildRoadMesh(
 		true);
 
 	static UMaterialInterface* RoadMaterial = LoadObject<UMaterialInterface>(
-		nullptr, TEXT("/Engine/EngineMaterials/WorldGridMaterial.WorldGridMaterial"));
+		nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
+	if (!RoadMaterial)
+	{
+		RoadMaterial = LoadObject<UMaterialInterface>(
+			nullptr, TEXT("/Engine/EngineDebugMaterials/LevelColorationUnlitMaterial.LevelColorationUnlitMaterial"));
+	}
 	if (RoadMaterial)
 	{
 		TargetMesh->SetMaterial(SectionIndex, RoadMaterial);

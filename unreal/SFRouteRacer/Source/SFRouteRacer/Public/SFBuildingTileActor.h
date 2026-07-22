@@ -33,7 +33,7 @@ protected:
 	FString TileId;
 
 	UPROPERTY(EditAnywhere, Category = "SF|Map")
-	bool bBuildOnBeginPlay = true;
+	bool bBuildOnBeginPlay = false;
 
 	UPROPERTY(EditAnywhere, Category = "SF|Map")
 	bool bEnableCollision = false;

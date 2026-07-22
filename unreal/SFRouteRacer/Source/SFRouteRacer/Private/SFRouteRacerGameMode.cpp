@@ -7,6 +7,7 @@
 #include "Engine/DirectionalLight.h"
 #include "Engine/ExponentialHeightFog.h"
 #include "Engine/GameInstance.h"
+#include "Engine/PostProcessVolume.h"
 #include "Engine/SkyLight.h"
 #include "GameFramework/WorldSettings.h"
 #include "Kismet/GameplayStatics.h"
@@ -78,9 +79,9 @@ void ASFRouteRacerGameMode::EnsureWorldLighting()
 			return;
 		}
 		Light->SetMobility(EComponentMobility::Movable);
-		Light->SetIntensity(20.0f);
+		Light->SetIntensity(40.0f);
 		Light->SetLightColor(FLinearColor(1.0f, 0.96f, 0.9f));
-		Light->SetCastShadows(true);
+		Light->SetCastShadows(false);
 		Light->SetAtmosphereSunLight(true);
 	};
 
@@ -96,7 +97,7 @@ void ASFRouteRacerGameMode::EnsureWorldLighting()
 			return;
 		}
 		Light->SetMobility(EComponentMobility::Movable);
-		Light->SetIntensity(2.5f);
+		Light->SetIntensity(4.0f);
 		Light->bRealTimeCapture = true;
 		Light->RecaptureSky();
 	};
@@ -150,8 +151,27 @@ void ASFRouteRacerGameMode::EnsureWorldLighting()
 			AExponentialHeightFog::StaticClass(), FTransform::Identity, SpawnParams);
 		if (Fog && Fog->GetComponent())
 		{
-			Fog->GetComponent()->SetFogDensity(0.0015f);
+			Fog->GetComponent()->SetFogDensity(0.0008f);
 			Fog->GetComponent()->SetFogHeightFalloff(0.15f);
+		}
+	}
+
+	Existing.Reset();
+	UGameplayStatics::GetAllActorsOfClass(World, APostProcessVolume::StaticClass(), Existing);
+	if (Existing.Num() == 0)
+	{
+		APostProcessVolume* Volume = World->SpawnActor<APostProcessVolume>(
+			APostProcessVolume::StaticClass(), FTransform::Identity, SpawnParams);
+		if (Volume)
+		{
+			Volume->bUnbound = true;
+			Volume->Priority = 100.0f;
+			Volume->Settings.bOverride_AutoExposureBias = true;
+			Volume->Settings.AutoExposureBias = 1.5f;
+			Volume->Settings.bOverride_AutoExposureMinBrightness = true;
+			Volume->Settings.AutoExposureMinBrightness = 0.5f;
+			Volume->Settings.bOverride_AutoExposureMaxBrightness = true;
+			Volume->Settings.AutoExposureMaxBrightness = 4.0f;
 		}
 	}
 
@@ -266,6 +286,7 @@ bool ASFRouteRacerGameMode::BootstrapGrayboxWorld()
 				{
 					Vehicle->CaptureSpawnTransform();
 				}
+				UE_LOG(LogSFRace, Warning, TEXT("Player start at %s (Ferry Building local area)"), *StartLocation.ToCompactString());
 			}
 			if (MinimapCaptureActor)
 			{

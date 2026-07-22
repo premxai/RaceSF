@@ -10,6 +10,7 @@
 #include "InputActionValue.h"
 #include "InputMappingContext.h"
 #include "InputModifiers.h"
+#include "Materials/MaterialInterface.h"
 #include "SFRouteRacer.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -33,6 +34,11 @@ ASFVehiclePawn::ASFVehiclePawn()
 	if (CubeMesh.Succeeded())
 	{
 		BodyMesh->SetStaticMesh(CubeMesh.Object);
+	}
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> BodyMat(TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
+	if (BodyMat.Succeeded())
+	{
+		BodyMesh->SetMaterial(0, BodyMat.Object);
 	}
 
 	ChaseSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("ChaseSpringArm"));

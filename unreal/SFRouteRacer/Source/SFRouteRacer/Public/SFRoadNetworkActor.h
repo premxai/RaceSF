@@ -31,7 +31,7 @@ protected:
 	TObjectPtr<USFProceduralRoadGeometryBuilder> GeometryBuilder;
 
 	UPROPERTY(EditAnywhere, Category = "SF|Map")
-	bool bBuildOnBeginPlay = true;
+	bool bBuildOnBeginPlay = false;
 
 	UPROPERTY(EditAnywhere, Category = "SF|Map")
 	int32 MaxEdgesToBuild = 0;

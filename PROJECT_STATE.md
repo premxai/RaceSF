@@ -4,35 +4,25 @@ Last updated: 2026-07-22
 
 Status values: Not started · In progress · Complete · Blocked
 
-## Milestones 1–5
+## Diagnosis (2026-07-22 evening)
 
-- Complete (source) — Data pipeline through presentation hooks
-- Complete — UE 5.8 `SFRouteRacerEditor` Development Win64 compile on this machine
+Gameplay bootstrap is healthy. Latest PIE log showed:
+- map export loaded (3944 roads / 6 landmarks / 26 races)
+- roads + buildings built
+- race `ferry_building_to_chase_center` reached Racing
+- scenic ghost started
 
-## Post-milestone playability pass
+What looked “broken” was the viewport:
+1. Empty map with unbuilt/static lighting → black screen + “LIGHTING NEEDS TO BE REBUILT”
+2. `r.DefaultFeature.AutoExposure=False` → crushed exposure / black scene
+3. City graybox only exists after Play (spawned in GameMode), ~1.5 km from origin
+4. Double road/building build slowed first PIE to ~35s of black loading
 
-- Complete — `scripts/setup_unreal.ps1` (finds UE 5.8, generates project files, builds)
-- Complete — `scripts/sync_map_export.ps1` (copies export into Content/Maps/sf_mvp)
-- Complete — `scripts/bootstrap_playable.ps1` + `Content/Python/bootstrap_playable.py`
-- Complete — Arcade `ASFVehiclePawn` with runtime Enhanced Input (no Chaos BP required)
-- Complete — Startup map `/Game/Maps/SFWaterfrontMVP`
-- Complete — Ghost opponent, boundary barriers, debug draw
-- Not started — Chaos vehicle Blueprint polish / packaged Development build
-- Not started — Confirmed human PIE of flagship race (open editor and press Play)
-
-## Verification log
-
-- Toolchain: VS Build Tools 2026, MSVC 14.51.36231, Windows SDK 10.0.22621.0
-- `Build.bat SFRouteRacerEditor Win64 Development` → Result: Succeeded (arcade vehicle rewrite)
-- `bootstrap_playable.ps1` → created `Content/Maps/SFWaterfrontMVP.umap`
-- Remote: https://github.com/premxai/RaceSF.git
+## Fixes applied
+- Dynamic lighting only (`r.AllowStaticLighting=False`, Force No Precomputed Lighting)
+- AutoExposure re-enabled + unbound post-process exposure boost
+- Brighter BasicShape materials on roads/buildings/vehicle
+- Disable BeginPlay auto-rebuild (GameMode builds once)
 
 ## Exact next step
-
-Open the project and PIE `SFWaterfrontMVP`:
-
-```powershell
-.\scripts\bootstrap_playable.ps1 -OpenEditor
-```
-
-Controls: W throttle, S brake, A/D steer, Space handbrake, R reset, C camera.
+Press Play, wait for bootstrap (~10–20s after fix), confirm yellow/checker graybox city at Ferry Building.

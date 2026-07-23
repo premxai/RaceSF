@@ -207,6 +207,16 @@ bool ASFRouteRacerGameMode::BootstrapGrayboxWorld()
 		ASFBuildingTileActor::StaticClass(), FTransform::Identity, SpawnParams);
 	DestinationMarker = GetWorld()->SpawnActor<ASFDestinationMarker>(
 		ASFDestinationMarker::StaticClass(), FTransform::Identity, SpawnParams);
+	if (DestinationMarker)
+	{
+		DestinationMarker->SetMarkerStyle(ESFLandmarkMarkerStyle::Finish);
+	}
+	StartMarker = GetWorld()->SpawnActor<ASFDestinationMarker>(
+		ASFDestinationMarker::StaticClass(), FTransform::Identity, SpawnParams);
+	if (StartMarker)
+	{
+		StartMarker->SetMarkerStyle(ESFLandmarkMarkerStyle::Start);
+	}
 	RaceManager = GetWorld()->SpawnActor<ASFRaceManager>(
 		ASFRaceManager::StaticClass(), FTransform::Identity, SpawnParams);
 	RouteHighlightActor = GetWorld()->SpawnActor<ASFRouteHighlightActor>(
@@ -273,13 +283,17 @@ bool ASFRouteRacerGameMode::BootstrapGrayboxWorld()
 		&& MapData->FindLandmark(Race.StartLandmarkId, Start)
 		&& Start.bHasSpawn)
 	{
+		const FVector StartLocation = USFGeoCoordinateLibrary::Point2DLocalToUnreal(
+			Start.Spawn.XMeters, Start.Spawn.YMeters, 2.0);
+		const FRotator StartRotation(0.0f, Start.Spawn.HeadingDegrees, 0.0f);
+		if (StartMarker)
+		{
+			StartMarker->SetActorLocation(StartLocation);
+		}
 		if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
 		{
 			if (APawn* Pawn = PC->GetPawn())
 			{
-				const FVector StartLocation = USFGeoCoordinateLibrary::Point2DLocalToUnreal(
-					Start.Spawn.XMeters, Start.Spawn.YMeters, 2.0);
-				const FRotator StartRotation(0.0f, Start.Spawn.HeadingDegrees, 0.0f);
 				Pawn->SetActorLocationAndRotation(
 					StartLocation, StartRotation, false, nullptr, ETeleportType::TeleportPhysics);
 				if (ASFVehiclePawn* Vehicle = Cast<ASFVehiclePawn>(Pawn))

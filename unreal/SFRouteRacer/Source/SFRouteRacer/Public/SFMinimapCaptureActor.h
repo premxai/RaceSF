@@ -43,10 +43,10 @@ protected:
 	TObjectPtr<UTextureRenderTarget2D> RenderTarget;
 
 	UPROPERTY(EditAnywhere, Category = "SF|Minimap")
-	float OrthoWidthMeters = 800.0f;
+	float OrthoWidthMeters = 450.0f;
 
 	UPROPERTY(EditAnywhere, Category = "SF|Minimap")
-	float CaptureHeightCm = 50000.0f;
+	float CaptureHeightCm = 35000.0f;
 
 	UPROPERTY(EditAnywhere, Category = "SF|Minimap")
 	bool bNorthUp = false;

@@ -53,9 +53,15 @@ def create_unlit_car() -> str:
     return _create_unlit("M_SFCarUnlit", unreal.LinearColor(1.0, 0.42, 0.08, 1.0))
 
 
+def create_unlit_start() -> str:
+    # Cool cyan beacon for the race start landmark.
+    return _create_unlit("M_SFStartUnlit", unreal.LinearColor(0.15, 0.75, 1.0, 1.0))
+
+
 def main() -> None:
     create_unlit_gray()
     create_unlit_car()
+    create_unlit_start()
 
 
 if __name__ == "__main__":

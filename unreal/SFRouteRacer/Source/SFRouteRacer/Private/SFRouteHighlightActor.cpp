@@ -1,6 +1,7 @@
 #include "SFRouteHighlightActor.h"
 
 #include "Engine/GameInstance.h"
+#include "Materials/MaterialInterface.h"
 #include "ProceduralMeshComponent.h"
 #include "SFGeoCoordinateLibrary.h"
 #include "SFMapDataSubsystem.h"
@@ -109,7 +110,21 @@ void ASFRouteHighlightActor::SetHighlightedEdgeIds(const TArray<FString>& EdgeId
 			}
 		}
 
+		const int32 CreatedSection = Section++;
 		HighlightMesh->CreateMeshSection_LinearColor(
-			Section++, Vertices, Triangles, Normals, UV0, Colors, Tangents, false);
+			CreatedSection, Vertices, Triangles, Normals, UV0, Colors, Tangents, false);
+
+		// Bright unlit so the route reads in-world and on the orthographic minimap.
+		static UMaterialInterface* RouteMaterial = LoadObject<UMaterialInterface>(
+			nullptr, TEXT("/Game/Materials/M_SFStartUnlit.M_SFStartUnlit"));
+		if (!RouteMaterial)
+		{
+			RouteMaterial = LoadObject<UMaterialInterface>(
+				nullptr, TEXT("/Game/Materials/M_SFCarUnlit.M_SFCarUnlit"));
+		}
+		if (RouteMaterial)
+		{
+			HighlightMesh->SetMaterial(CreatedSection, RouteMaterial);
+		}
 	}
 }

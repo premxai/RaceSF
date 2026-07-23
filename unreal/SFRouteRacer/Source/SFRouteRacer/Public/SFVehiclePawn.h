@@ -43,6 +43,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = "SF|Vehicle")
 	float GetSpeedKmh() const;
 
+	UFUNCTION(BlueprintCallable, Category = "SF|Vehicle")
+	void SetDrivingEnabled(bool bEnabled);
+
+	UFUNCTION(BlueprintPure, Category = "SF|Vehicle")
+	bool IsDrivingEnabled() const { return bDrivingEnabled; }
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -146,6 +152,7 @@ protected:
 	float LookYawReturnSpeed = 4.5f;
 
 	bool bUsingChaseCamera = true;
+	bool bDrivingEnabled = true;
 	bool bHandbrake = false;
 	float ThrottleAxis = 0.0f;
 	float SteerAxis = 0.0f;

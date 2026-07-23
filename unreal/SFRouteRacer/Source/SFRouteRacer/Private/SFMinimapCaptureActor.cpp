@@ -12,9 +12,14 @@ ASFMinimapCaptureActor::ASFMinimapCaptureActor()
 	SetRootComponent(CaptureComponent);
 	CaptureComponent->ProjectionType = ECameraProjectionMode::Orthographic;
 	CaptureComponent->OrthoWidth = OrthoWidthMeters * 100.0f;
-	CaptureComponent->CaptureSource = ESceneCaptureSource::SCS_SceneColorHDR;
+	CaptureComponent->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 	CaptureComponent->bCaptureEveryFrame = true;
 	CaptureComponent->bCaptureOnMovement = true;
+	CaptureComponent->bAlwaysPersistRenderingState = true;
+	CaptureComponent->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_RenderScenePrimitives;
+	CaptureComponent->ShowFlags.SetFog(false);
+	CaptureComponent->ShowFlags.SetDynamicShadows(false);
+	CaptureComponent->ShowFlags.SetPostProcessing(false);
 }
 
 void ASFMinimapCaptureActor::BeginPlay()
@@ -22,8 +27,9 @@ void ASFMinimapCaptureActor::BeginPlay()
 	Super::BeginPlay();
 
 	RenderTarget = NewObject<UTextureRenderTarget2D>(this);
+	RenderTarget->RenderTargetFormat = RTF_RGBA8;
+	RenderTarget->ClearColor = FLinearColor(0.08f, 0.1f, 0.12f, 1.0f);
 	RenderTarget->InitAutoFormat(512, 512);
-	RenderTarget->ClearColor = FLinearColor(0.05f, 0.07f, 0.09f);
 	RenderTarget->UpdateResourceImmediate(true);
 	CaptureComponent->TextureTarget = RenderTarget;
 	SetOrthoWidthMeters(OrthoWidthMeters);
@@ -41,7 +47,15 @@ void ASFMinimapCaptureActor::Tick(float DeltaSeconds)
 	AActor* Target = FollowTarget.Get();
 	if (!Target)
 	{
-		return;
+		if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		{
+			SetFollowTarget(PC->GetPawn());
+			Target = FollowTarget.Get();
+		}
+		if (!Target)
+		{
+			return;
+		}
 	}
 
 	const FVector TargetLocation = Target->GetActorLocation();

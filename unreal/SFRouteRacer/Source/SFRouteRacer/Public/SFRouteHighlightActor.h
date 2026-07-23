@@ -34,8 +34,8 @@ protected:
 	TObjectPtr<UProceduralMeshComponent> HighlightMesh;
 
 	UPROPERTY(EditAnywhere, Category = "SF|Navigation")
-	float HighlightWidthMeters = 2.0f;
+	float HighlightWidthMeters = 6.0f;
 
 	UPROPERTY(EditAnywhere, Category = "SF|Navigation")
-	float HeightOffsetCm = 8.0f;
+	float HeightOffsetCm = 40.0f;
 };

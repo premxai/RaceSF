@@ -238,9 +238,30 @@ void ASFVehiclePawn::UpdateChaseCamera(float DeltaSeconds)
 	ChaseSpringArm->SetRelativeRotation(FRotator(ChasePitchDegrees, CameraLookYawDegrees, 0.0f));
 }
 
+void ASFVehiclePawn::SetDrivingEnabled(bool bEnabled)
+{
+	bDrivingEnabled = bEnabled;
+	if (!bDrivingEnabled)
+	{
+		ThrottleAxis = 0.0f;
+		SteerAxis = 0.0f;
+		SteerAxisSmoothed = 0.0f;
+		BrakeAxis = 0.0f;
+		CurrentSpeedCmPerSec = 0.0f;
+		bHandbrake = false;
+	}
+}
+
 void ASFVehiclePawn::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	if (!bDrivingEnabled)
+	{
+		CurrentSpeedCmPerSec = 0.0f;
+		UpdateChaseCamera(DeltaSeconds);
+		return;
+	}
 
 	SteerAxisSmoothed = FMath::FInterpTo(SteerAxisSmoothed, SteerAxis, DeltaSeconds, SteerInputSmoothSpeed);
 

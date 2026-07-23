@@ -6,8 +6,6 @@
 
 class ASFDestinationMarker;
 class ASFVehiclePawn;
-class USFVehicleHUDWidget;
-class USFResultsWidget;
 
 UENUM(BlueprintType)
 enum class ESFRaceState : uint8
@@ -43,6 +41,9 @@ public:
 	bool StartRace(const FString& RaceId, const FString& SelectedRouteProfile = TEXT("fastest"));
 
 	UFUNCTION(BlueprintCallable, Category = "SF|Race")
+	bool ApplyRouteProfile(const FString& Profile);
+
+	UFUNCTION(BlueprintCallable, Category = "SF|Race")
 	void RestartRace();
 
 	UFUNCTION(BlueprintCallable, Category = "SF|Race")
@@ -62,6 +63,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "SF|Race")
 	int32 GetRerouteCount() const { return RerouteCount; }
+
+	UFUNCTION(BlueprintPure, Category = "SF|Race")
+	int32 GetCountdownValue() const { return CountdownValue; }
 
 	UFUNCTION(BlueprintPure, Category = "SF|Race")
 	FString GetActiveRaceId() const { return ActiveRaceId; }
@@ -100,6 +104,11 @@ protected:
 	void UpdateRacing(float DeltaSeconds);
 	void CompleteRace();
 	void PersistBestTime() const;
+	void SyncSubsystemState(ESFRaceState NewState) const;
+	void SetVehicleDrivingEnabled(bool bEnabled) const;
+	void ResetPlayerToSpawn() const;
+	void PushHud() const;
+	bool ApplySelectedRouteToNavigation();
 	ASFVehiclePawn* FindPlayerVehicle() const;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SF|Race")

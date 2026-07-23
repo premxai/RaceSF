@@ -72,6 +72,9 @@ protected:
 	TObjectPtr<ASFDestinationMarker> DestinationMarker;
 
 	UPROPERTY()
+	TObjectPtr<ASFDestinationMarker> StartMarker;
+
+	UPROPERTY()
 	TObjectPtr<ASFRaceManager> RaceManager;
 
 	UPROPERTY()

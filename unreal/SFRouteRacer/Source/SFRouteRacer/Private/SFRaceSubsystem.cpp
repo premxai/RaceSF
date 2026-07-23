@@ -23,6 +23,10 @@ void USFRaceSubsystem::SetSelectedRouteProfile(const FString& Profile)
 
 void USFRaceSubsystem::SetRaceState(ESFRaceState NewState)
 {
+	if (RaceState == NewState)
+	{
+		return;
+	}
 	RaceState = NewState;
 	UE_LOG(LogSFRace, Log, TEXT("Race subsystem state -> %d"), static_cast<int32>(NewState));
 }

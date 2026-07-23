@@ -180,6 +180,7 @@ def main() -> None:
 
         create_graybox_material.create_unlit_gray()
         create_graybox_material.create_unlit_car()
+        create_graybox_material.create_unlit_start()
     except Exception as exc:  # noqa: BLE001
         unreal.log_warning(f"SF playable bootstrap: graybox material step failed ({exc})")
 
